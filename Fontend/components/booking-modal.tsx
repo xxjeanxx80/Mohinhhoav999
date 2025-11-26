@@ -512,9 +512,16 @@ export function BookingModal({
                     <button
                       onClick={validateCoupon}
                       disabled={!couponCode.trim() || validatingCoupon}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
                     >
-                      {validatingCoupon ? "..." : "Áp dụng"}
+                      {validatingCoupon ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Đang kiểm tra...
+                        </>
+                      ) : (
+                        "Áp dụng"
+                      )}
                     </button>
                   </div>
                   {validatedCoupon && (

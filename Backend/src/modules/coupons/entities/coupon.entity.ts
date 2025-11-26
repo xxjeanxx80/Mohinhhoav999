@@ -22,7 +22,7 @@ export class Coupon {
   @Column({ name: 'current_redemptions', type: 'int', default: 0 })
   currentRedemptions: number;
 
-  @Column({ default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })

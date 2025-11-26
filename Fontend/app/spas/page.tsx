@@ -129,9 +129,11 @@ export default function SpasPage() {
     }
   }
 
-  const filterByService = async (keyword: string) => {
+  const filterByService = async (keyword: string, manageState: boolean = true) => {
     try {
-      setLoading(true)
+      if (manageState) {
+        setLoading(true)
+      }
       console.log("🔍 [filterByService] Filtering spas by service keyword:", keyword)
       
       // Đảm bảo đã có danh sách spas trước
@@ -238,38 +240,106 @@ export default function SpasPage() {
       const validSpas = filtered.filter(Boolean)
       console.log(`✅ [filterByService] Found ${validSpas.length} spa(s) matching keyword "${keyword}"`)
       
-      setFilteredSpas(validSpas)
-      
-      if (validSpas.length === 0) {
-        toast({
-          title: t.noSpaFound,
-          description: t.noSpaWithService.replace("{keyword}", keyword),
-        })
-      } else {
-        toast({
-          title: t.success,
-          description: t.foundSpas.replace("{count}", validSpas.length.toString()).replace("{keyword}", keyword),
-        })
+      // Only manage state if called directly (not from combined search)
+      if (manageState) {
+        setFilteredSpas(validSpas)
+        
+        if (validSpas.length === 0) {
+          toast({
+            title: t.noSpaFound,
+            description: t.noSpaWithService.replace("{keyword}", keyword),
+          })
+        } else {
+          toast({
+            title: t.success,
+            description: t.foundSpas.replace("{count}", validSpas.length.toString()).replace("{keyword}", keyword),
+          })
+        }
       }
+      
+      return validSpas
     } catch (error: any) {
       console.error("❌ [filterByService] Error filtering by service:", error)
-      toast({
-        title: t.error,
-        description: t.cannotLoad,
-        variant: "destructive",
-      })
-      setFilteredSpas([])
+      
+      if (manageState) {
+        toast({
+          title: t.error,
+          description: t.cannotLoad,
+          variant: "destructive",
+        })
+        setFilteredSpas([])
+      }
+      
+      return []
     } finally {
-      setLoading(false)
+      if (manageState) {
+        setLoading(false)
+      }
     }
   }
 
-  const filterBySearchTerm = (term: string) => {
-    const filtered = spas.filter((spa) =>
-      spa.name?.toLowerCase().includes(term.toLowerCase()) ||
-      spa.address?.toLowerCase().includes(term.toLowerCase())
-    )
-    setFilteredSpas(filtered)
+  const filterBySearchTerm = async (term: string) => {
+    setLoading(true)
+    try {
+      console.log("🔍 [filterBySearchTerm] Combined search for:", term)
+      
+      // First, get spas matching by name/address (fast, local filter)
+      const spasByNameAddress = spas.filter((spa) =>
+        spa.name?.toLowerCase().includes(term.toLowerCase()) ||
+        spa.address?.toLowerCase().includes(term.toLowerCase())
+      )
+      
+      // Then, get spas matching by services (requires API calls)
+      const spasByServices = await filterByService(term, false) // Don't manage state here
+      
+      // Combine results and remove duplicates
+      const allMatchingSpas = [...spasByNameAddress]
+      const spaIdsByName = new Set(spasByNameAddress.map(spa => spa.id))
+      
+      spasByServices.forEach(spa => {
+        if (!spaIdsByName.has(spa.id)) {
+          allMatchingSpas.push(spa)
+        }
+      })
+      
+      setFilteredSpas(allMatchingSpas)
+      
+      console.log(`🔍 Combined search results for "${term}":`, {
+        byNameAddress: spasByNameAddress.length,
+        byServices: spasByServices.length,
+        total: allMatchingSpas.length
+      })
+      
+      // Show success message
+      if (allMatchingSpas.length > 0) {
+        toast({
+          title: t.success,
+          description: `Tìm thấy ${allMatchingSpas.length} spa cho "${term}"`,
+        })
+      } else {
+        toast({
+          title: t.noSpaFound,
+          description: `Không tìm thấy spa nào cho "${term}"`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error in combined search:", error)
+      // Fallback to name/address search only
+      const fallback = spas.filter((spa) =>
+        spa.name?.toLowerCase().includes(term.toLowerCase()) ||
+        spa.address?.toLowerCase().includes(term.toLowerCase())
+      )
+      setFilteredSpas(fallback)
+      
+      toast({
+        title: t.error,
+        description: "Đã xảy ra lỗi khi tìm kiếm",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSearch = (e: React.FormEvent) => {

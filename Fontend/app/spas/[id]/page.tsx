@@ -13,6 +13,8 @@ import { useSpa } from "@/hooks/use-spa"
 import { AuthModal } from "@/components/auth-modal"
 import { BookingModal } from "@/components/booking-modal"
 import { useUserState } from "@/hooks/use-user-state"
+import { useFavorites } from "@/hooks/use-favorites"
+import { useToast } from "@/hooks/use-toast"
 import { getSpaImage } from "@/lib/image-utils"
 import { useSpaMedia } from "@/hooks/use-spa-media"
 
@@ -34,8 +36,9 @@ export default function SpaDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [isBookingOpen, setIsBookingOpen] = useState(false)
-  const [isFavorite, setIsFavorite] = useState(false)
   const { user } = useUserState()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { toast } = useToast()
   const { spa, loading, error } = useSpa(spaId)
   const { backgroundUrl, avatarUrl } = useSpaMedia(spaId)
 
@@ -117,10 +120,18 @@ export default function SpaDetailPage() {
           </div>
           <div className="absolute top-4 right-4 flex gap-2">
             <button
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={() => {
+                const wasFavorite = isFavorite(spaId)
+                toggleFavorite(spaId)
+                toast({
+                  title: wasFavorite ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích",
+                  description: spa?.name || "Spa",
+                })
+              }}
               className="p-3 bg-white rounded-full shadow-md hover:bg-slate-100 transition"
+              title={isFavorite(spaId) ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
             >
-              <Heart className={`w-6 h-6 ${isFavorite ? "fill-amber-500 text-amber-500" : "text-slate-400"}`} />
+              <Heart className={`w-6 h-6 transition ${isFavorite(spaId) ? "fill-amber-500 text-amber-500" : "text-slate-400"}`} />
             </button>
             <button className="p-3 bg-white rounded-full shadow-md hover:bg-slate-100 transition">
               <Share2 className="w-6 h-6 text-slate-400" />
@@ -195,7 +206,7 @@ export default function SpaDetailPage() {
                             <p className="text-xs text-slate-600 mt-1">{service.description}</p>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right booking-actions">
                           <p className="font-semibold text-amber-600">
                             {Number(service.price).toLocaleString()} VNĐ
                           </p>
@@ -243,7 +254,7 @@ export default function SpaDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Card className="border-0 shadow-sm sticky top-20">
+            <Card className="border-0 shadow-sm sticky top-20 z-20">
               <CardHeader>
                 <CardTitle className="text-lg">Đặt lịch ngay</CardTitle>
               </CardHeader>

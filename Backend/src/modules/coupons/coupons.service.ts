@@ -59,6 +59,36 @@ export class CouponsService {
     return new ApiResponseDto({ success: true, message: 'Coupon retrieved.', data: coupon });
   }
 
+  async getPublicCoupons() {
+    const coupons = await this.couponRepository.find({
+      where: { isActive: true },
+      relations: ['spa'],
+      order: { createdAt: 'DESC' }
+    });
+
+    console.log('🎫 [CouponsService] All active coupons:', coupons.length);
+    
+    const activeCoupons = coupons.filter(coupon => {
+      const isNotExpired = !coupon.expiresAt || coupon.expiresAt.getTime() > Date.now();
+      console.log(`🎫 [CouponsService] ${coupon.code}: expires=${coupon.expiresAt}, isNotExpired=${isNotExpired}`);
+      return isNotExpired;
+    });
+
+    console.log('🎫 [CouponsService] Non-expired coupons:', activeCoupons.length);
+
+    return activeCoupons.map(coupon => ({
+      id: coupon.id,
+      code: coupon.code,
+      discountPercent: coupon.discountPercent,
+      expiresAt: coupon.expiresAt,
+      spa: coupon.spa ? {
+        id: coupon.spa.id,
+        name: coupon.spa.name
+      } : null,
+      isGlobal: !coupon.spa
+    }));
+  }
+
   async validateCoupon(code: string) {
     if (!code || !code.trim()) {
       throw new BadRequestException('Coupon code is required.');

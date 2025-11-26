@@ -7,10 +7,12 @@ import Link from "next/link"
 import { useFavorites } from "@/hooks/use-favorites"
 import { SpaAvatar } from "@/components/spa-avatar"
 import { useLanguage } from "@/contexts/language-context"
+import { useToast } from "@/hooks/use-toast"
 
 export default function CustomerFavorites() {
   const { favorites, loading, toggleFavorite } = useFavorites()
   const { t } = useLanguage()
+  const { toast } = useToast()
 
   if (loading) {
     return (
@@ -80,19 +82,23 @@ export default function CustomerFavorites() {
                       </div>
                     </div>
                     
-                    {/* Heart Icon */}
+                    {/* Heart Icon - Filled vì đã yêu thích */}
                     <div className="flex-shrink-0">
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.preventDefault()
                           e.stopPropagation()
-                          toggleFavorite(spa.id)
+                          await toggleFavorite(spa.id)
+                          toast({
+                            title: "Đã xóa khỏi yêu thích",
+                            description: `${spa.name} đã được xóa khỏi danh sách yêu thích`,
+                          })
                         }}
-                        className="p-2 hover:bg-amber-50 rounded-full transition"
+                        className="p-2 hover:bg-red-50 rounded-full transition"
                         title={t.removeFromFavorites}
                         suppressHydrationWarning
                       >
-                        <Heart className="w-5 h-5 text-slate-400" />
+                        <Heart className="w-5 h-5 text-amber-500 fill-amber-500 hover:text-red-500 hover:fill-red-500" />
                       </button>
                     </div>
                   </div>

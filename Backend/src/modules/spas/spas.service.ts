@@ -243,6 +243,14 @@ export class SpasService {
       );
 
       this.logger.log(`Found ${spas.length} spa(s) within ${radius}km of (${lat}, ${lng})`);
+      
+      // Debug: Log coordinates of found spas
+      if (spas.length > 0) {
+        this.logger.debug('Spa coordinates found:');
+        spas.forEach((spa, index) => {
+          this.logger.debug(`${index + 1}. ${spa.name}: lat=${spa.latitude}, lng=${spa.longitude}, distance=${spa.distance_km}km`);
+        });
+      }
 
       return new ApiResponseDto({
         success: true,

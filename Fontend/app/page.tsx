@@ -11,6 +11,7 @@ import { MainHeader } from "@/components/main-header"
 import { Footer } from "@/components/footer"
 import { useUserState } from "@/hooks/use-user-state"
 import { useFeaturedSpas } from "@/hooks/use-featured-spas"
+import { useFavorites } from "@/hooks/use-favorites"
 import { useRecentFeedbacks } from "@/hooks/use-recent-feedbacks"
 import { usePublicPosts, PublicPost } from "@/hooks/use-public-posts"
 import { useHomepageImages } from "@/hooks/use-homepage-images"
@@ -20,6 +21,7 @@ import { SpaAvatar } from "@/components/spa-avatar"
 import { PostImage } from "@/components/post-image"
 import { toast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/language-context"
+import { SpaCardSkeleton, FeedbackCardSkeleton, BlogCardSkeleton } from "@/components/ui/skeleton"
 
 export default function Home() {
   const router = useRouter()
@@ -29,6 +31,7 @@ export default function Home() {
   const [findingLocation, setFindingLocation] = useState(false)
   const { user } = useUserState()
   const { spas, loading: spasLoading } = useFeaturedSpas()
+  const { isFavorite, toggleFavorite } = useFavorites()
   const { feedbacks, loading: feedbacksLoading } = useRecentFeedbacks()
   const { posts: publicPosts, loading: postsLoading } = usePublicPosts()
   const { card1Url, card2Url, serviceImages } = useHomepageImages()
@@ -85,6 +88,23 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords
+        console.log('📍 Location captured:', { 
+          latitude, 
+          longitude, 
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude,
+          altitudeAccuracy: position.coords.altitudeAccuracy,
+          heading: position.coords.heading,
+          speed: position.coords.speed,
+          timestamp: position.timestamp
+        })
+        
+        // Show debug info to user
+        toast({
+          title: "Vị trí của bạn",
+          description: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)} (Accuracy: ±${Math.round(position.coords.accuracy || 0)}m)`,
+        })
+        
         router.push(`/spas?lat=${latitude}&lng=${longitude}&nearby=true`)
         setFindingLocation(false)
       },
@@ -184,20 +204,6 @@ export default function Home() {
               <span suppressHydrationWarning>{findingLocation ? t.findingLocation : t.findNearby}</span>
             </Button>
           </form>
-          
-          <p className="text-sm text-slate-600" suppressHydrationWarning>
-            {t.or} <button 
-              type="button"
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.preventDefault()
-                e.stopPropagation()
-                handleFindNearby()
-              }} 
-              className="text-amber-600 hover:underline font-medium"
-            >
-              {t.orFindSpaNearLocation}
-            </button>
-          </p>
         </div>
       </section>
 
@@ -309,7 +315,11 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-12" suppressHydrationWarning>{t.featuredSpas}</h2>
           {spasLoading ? (
-            <div className="text-center py-12" suppressHydrationWarning>{t.loading}</div>
+            <div className="grid md:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <SpaCardSkeleton key={i} />
+              ))}
+            </div>
           ) : spas.length === 0 ? (
             <div className="text-center py-12 text-slate-500" suppressHydrationWarning>{t.noSpasYet}</div>
           ) : (
@@ -331,11 +341,18 @@ export default function Home() {
                         <button 
                           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                             e.preventDefault()
-                            // Add to favorites logic
+                            e.stopPropagation()
+                            const wasFavorite = isFavorite(spa.id)
+                            toggleFavorite(spa.id)
+                            toast({
+                              title: wasFavorite ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích",
+                              description: `${spa.name}`,
+                            })
                           }}
-                          className="p-1.5 hover:bg-amber-50 rounded-full transition"
+                          className="p-1.5 hover:bg-amber-50 rounded-full transition z-10"
+                          title={isFavorite(spa.id) ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
                         >
-                          <Heart className="w-4 h-4 text-slate-400 hover:text-amber-500" />
+                          <Heart className={`w-4 h-4 transition ${isFavorite(spa.id) ? "text-amber-500 fill-amber-500" : "text-slate-400 hover:text-amber-500"}`} />
                         </button>
                       </div>
                       <p className="text-xs text-slate-400 mt-1">1 tháng gần đây</p>
@@ -353,7 +370,11 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white mb-12">Đánh giá khách hàng</h2>
           {feedbacksLoading ? (
-            <div className="text-center py-12 text-white">Đang tải...</div>
+            <div className="grid md:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <FeedbackCardSkeleton key={i} />
+              ))}
+            </div>
           ) : feedbacks.length === 0 ? (
             <div className="text-center py-12 text-white">Chưa có đánh giá nào</div>
           ) : (
@@ -379,7 +400,11 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Blogs</h2>
           {postsLoading ? (
-            <div className="text-center py-12">Đang tải...</div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <BlogCardSkeleton key={i} />
+              ))}
+            </div>
           ) : publicPosts.length === 0 ? (
             <div className="text-center py-12 text-slate-500">Chưa có bài viết nào</div>
           ) : (

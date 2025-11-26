@@ -65,3 +65,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix Leaflet map z-index issues */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+/* Ensure booking buttons stay above map */
+.booking-actions {
+  position: relative;
+  z-index: 10;
+}

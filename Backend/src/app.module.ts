@@ -11,6 +11,7 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { CustomerModule } from './modules/customers/customer.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PayoutsModule } from './modules/payouts/payouts.module';
@@ -38,6 +39,7 @@ import { MediaModule } from './modules/media/media.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false,
+        logging: false, // Tắt query logging (chỉ bật khi debug)
       }),
     }),
     AuthModule,
@@ -48,6 +50,7 @@ import { MediaModule } from './modules/media/media.module';
     StaffModule,
     BookingsModule,
     FeedbacksModule,
+    FavoritesModule,
     PaymentsModule,
     PayoutsModule,
     CouponsModule,

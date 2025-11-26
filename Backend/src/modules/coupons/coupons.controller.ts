@@ -32,6 +32,11 @@ export class CouponsController {
     return this.couponsService.findAll();
   }
 
+  @Get('public')
+  getPublicCoupons() {
+    return this.couponsService.getPublicCoupons();
+  }
+
   @Get('validate')
   validateCoupon(@Query('code') code: string) {
     return this.couponsService.validateCoupon(code);

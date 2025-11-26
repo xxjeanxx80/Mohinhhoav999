@@ -49,11 +49,21 @@ export const notificationsAPI = {
 
 // Customers API
 export const customersAPI = {
-  getAll: () => axiosClient.get("/customers"),
   create: (data: any) => axiosClient.post("/customers", data),
+  getAll: () => axiosClient.get("/customers"),
   getOne: (id: number) => axiosClient.get(`/customers/${id}`),
-  update: (id: number, data: any) => axiosClient.put(`/customers/${id}`, data),
+  update: (id: number, data: any) => axiosClient.patch(`/customers/${id}`, data),
   delete: (id: number) => axiosClient.delete(`/customers/${id}`),
+}
+
+// Favorites API
+export const favoritesAPI = {
+  getAll: () => axiosClient.get("/favorites"),
+  getIds: () => axiosClient.get("/favorites/ids"),
+  create: (spaId: number) => axiosClient.post("/favorites", { spaId }),
+  remove: (spaId: number) => axiosClient.delete(`/favorites/${spaId}`),
+  sync: (spaIds: number[]) => axiosClient.post("/favorites/sync", { spaIds }),
+  check: (spaId: number) => axiosClient.get(`/favorites/check/${spaId}`),
 }
 
 // Owner APIs
@@ -283,4 +293,5 @@ export const usersAPI = {
 // Coupons API
 export const couponsAPI = {
   validate: (code: string) => axiosClient.get(`/coupons/validate?code=${code}`),
+  getPublic: () => axiosClient.get("/coupons/public"),
 }
