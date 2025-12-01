@@ -51,7 +51,7 @@ api.interceptors.response.use(
       originalRequest._retried = true
       
       // Try direct URL as fallback
-      const directURL = process.env.NEXT_PUBLIC_API_URL_DIRECT || "http://localhost:3000"
+      const directURL = getAPIBaseURL()
       originalRequest.baseURL = directURL
       
       try {
