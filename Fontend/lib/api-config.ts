@@ -15,6 +15,11 @@ export function shouldUseDirectURL(): boolean {
   // Check environment variable
   if (process.env.NEXT_PUBLIC_USE_DIRECT_API === "true") return true
   
+  // FORCE DIRECT URL for deployed environments (Vercel, etc.)
+  if (process.env.NEXT_PUBLIC_API_URL_DIRECT && process.env.NEXT_PUBLIC_API_URL_DIRECT !== "http://localhost:3000") {
+    return true
+  }
+  
   return false
 }
 
