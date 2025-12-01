@@ -19,6 +19,13 @@ export function shouldUseDirectURL(): boolean {
 }
 
 export function getAPIBaseURL(): string {
+  // DEBUG: Log environment variables to check if they're baked into build
+  if (typeof window !== "undefined") {
+    console.log('🔍 DEBUG - API_URL_DIRECT:', process.env.NEXT_PUBLIC_API_URL_DIRECT)
+    console.log('🔍 DEBUG - API_URL:', process.env.NEXT_PUBLIC_API_URL)
+    console.log('🔍 DEBUG - shouldUseDirectURL:', shouldUseDirectURL())
+  }
+  
   if (shouldUseDirectURL()) {
     return process.env.NEXT_PUBLIC_API_URL_DIRECT || "http://localhost:3000"
   }
