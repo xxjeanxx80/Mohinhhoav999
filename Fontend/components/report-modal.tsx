@@ -115,24 +115,24 @@ export function ReportModal({ isOpen, onClose, booking, feedbackId, onSuccess }:
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md">
+      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-6 flex justify-between items-center rounded-t-lg">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <AlertTriangle size={24} />
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4 sm:p-6 flex justify-between items-center rounded-t-lg">
+          <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+            <AlertTriangle size={20} />
             Báo cáo
           </h2>
           <button onClick={onClose} className="hover:bg-white/20 p-1 rounded" disabled={submitting}>
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Booking Info */}
-          <div className="bg-slate-50 p-4 rounded-lg">
-            <p className="text-sm text-slate-600 mb-2">Thông tin đặt lịch</p>
-            <div className="space-y-1 text-sm">
+          <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
+            <p className="text-xs sm:text-sm text-slate-600 mb-2">Thông tin đặt lịch</p>
+            <div className="space-y-1 text-xs sm:text-sm">
               <p><span className="font-medium">Spa:</span> {booking.spa?.name || "N/A"}</p>
               <p><span className="font-medium">Dịch vụ:</span> {booking.service?.name || "N/A"}</p>
               {booking.staff && (
@@ -143,7 +143,7 @@ export function ReportModal({ isOpen, onClose, booking, feedbackId, onSuccess }:
 
           {/* Target Type Selection */}
           <div>
-            <Label className="text-sm font-medium text-slate-700 mb-2 block">
+            <Label className="text-xs sm:text-sm font-medium text-slate-700 mb-2 block">
               Bạn muốn báo cáo về
             </Label>
             <Select
@@ -176,7 +176,7 @@ export function ReportModal({ isOpen, onClose, booking, feedbackId, onSuccess }:
 
           {/* Reason */}
           <div>
-            <Label htmlFor="reason" className="text-sm font-medium text-slate-700 mb-2 block">
+            <Label htmlFor="reason" className="text-xs sm:text-sm font-medium text-slate-700 mb-2 block">
               Lý do báo cáo *
             </Label>
             <Textarea
@@ -184,14 +184,14 @@ export function ReportModal({ isOpen, onClose, booking, feedbackId, onSuccess }:
               placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              rows={5}
+              rows={4}
               disabled={submitting}
-              className="resize-none"
+              className="resize-none text-sm"
             />
             <p className="text-xs text-slate-500 mt-1">{reason.length}/500 ký tự</p>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
             <p className="text-xs text-blue-800">
               <strong>Lưu ý:</strong> Báo cáo của bạn sẽ được gửi đến quản trị viên để xem xét. 
               Chúng tôi sẽ phản hồi qua thông báo khi có kết quả.
@@ -200,13 +200,13 @@ export function ReportModal({ isOpen, onClose, booking, feedbackId, onSuccess }:
         </div>
 
         {/* Footer */}
-        <div className="border-t p-6 flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1" disabled={submitting}>
+        <div className="border-t p-4 sm:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button variant="outline" onClick={onClose} className="w-full sm:flex-1" disabled={submitting}>
             Hủy
           </Button>
           <Button
             onClick={handleSubmit}
-            className="flex-1 bg-orange-600 hover:bg-orange-700"
+            className="w-full sm:flex-1 bg-orange-600 hover:bg-orange-700"
             disabled={submitting}
           >
             {submitting ? "Đang gửi..." : "Gửi báo cáo"}

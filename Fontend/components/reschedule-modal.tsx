@@ -37,9 +37,11 @@ export function RescheduleModal({
 
     setLoading(true)
     try {
-      await bookingsAPI.update(booking.id, {
-        bookingDate: selectedDate,
-        bookingTime: selectedTime,
+      // Combine date and time into ISO string
+      const scheduledAt = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+      
+      await bookingsAPI.reschedule(booking.id, {
+        scheduledAt,
       })
 
       toast({
@@ -98,7 +100,7 @@ export function RescheduleModal({
             <p><strong>Spa:</strong> {booking.spa?.name}</p>
             <p><strong>Dịch vụ:</strong> {booking.service?.name}</p>
             <p><strong>Nhân viên:</strong> {booking.staff?.name || "Không chỉ định"}</p>
-            <p><strong>Thời gian:</strong> {booking.bookingDate} - {booking.bookingTime}</p>
+            <p><strong>Thời gian:</strong> {booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleString('vi-VN') : '-'}</p>
           </div>
         </div>
 

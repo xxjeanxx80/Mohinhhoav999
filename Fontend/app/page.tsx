@@ -398,7 +398,7 @@ export default function Home() {
       {/* Blogs Section */}
       <section className="py-16 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Blogs</h2>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12" suppressHydrationWarning>{t.blogTitle}</h2>
           {postsLoading ? (
             <div className="grid md:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
@@ -406,12 +406,16 @@ export default function Home() {
               ))}
             </div>
           ) : publicPosts.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">Chưa có bài viết nào</div>
+            <div className="text-center py-12 text-slate-500" suppressHydrationWarning>{t.noPostsYet}</div>
           ) : (
             <>
               <div className="grid md:grid-cols-3 gap-6">
                 {publicPosts.slice(0, 3).map((post: PublicPost) => {
-                  const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString('vi-VN') : "Chưa có ngày"
+                  const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString(language === "VN" ? 'vi-VN' : 'en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : t.noDate
                   const spaName = post.spa?.name || "Spa"
                   return (
                     <Link href={`/blog/${post.id}`} key={post.id}>
@@ -430,8 +434,8 @@ export default function Home() {
               {publicPosts.length > 3 && (
                 <div className="text-center mt-10">
                   <Link href="/blog">
-                    <Button className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-6 rounded-full text-base font-medium">
-                      Xem thêm
+                    <Button className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-6 rounded-full text-base font-medium" suppressHydrationWarning>
+                      {t.exploreNow}
                     </Button>
                   </Link>
                 </div>
