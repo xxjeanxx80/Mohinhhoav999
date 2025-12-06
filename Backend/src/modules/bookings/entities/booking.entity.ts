@@ -17,6 +17,7 @@ import { Feedback } from '../../feedbacks/entities/feedback.entity';
 export enum BookingStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
+  RESCHEDULE_REQUESTED = 'RESCHEDULE_REQUESTED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
@@ -44,6 +45,9 @@ export class Booking {
 
   @Column({ type: 'timestamp with time zone', name: 'scheduled_at' })
   scheduledAt: Date;
+
+  @Column({ type: 'timestamp with time zone', name: 'requested_scheduled_at', nullable: true })
+  requestedScheduledAt: Date | null;
 
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;

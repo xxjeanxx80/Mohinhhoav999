@@ -3,8 +3,8 @@ import { IsEnum, IsNumber, IsObject, IsOptional, IsString } from 'class-validato
 import { NotificationChannel } from '../entities/notification.entity';
 
 export class SendNotificationDto {
-  @ApiProperty({ enum: NotificationChannel })
-  @IsEnum(NotificationChannel)
+  @ApiProperty({ enum: [NotificationChannel.PUSH], description: 'Only PUSH channel is supported for admin notifications.' })
+  @IsEnum([NotificationChannel.PUSH], { message: 'Only PUSH channel is allowed for notifications.' })
   channel: NotificationChannel;
 
   @ApiProperty({ required: false })

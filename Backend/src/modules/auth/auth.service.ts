@@ -17,6 +17,7 @@ import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { Loyalty } from '../users/entities/loyalty.entity';
 import { LoyaltyRank } from '../users/enums/loyalty-rank.enum';
+import { EmailService } from '../email/email.service';
 
 export interface AuthTokens {
   accessToken: string;
@@ -44,6 +45,7 @@ export class AuthService {
     @InjectRepository(Loyalty) private readonly loyaltyRepo: Repository<Loyalty>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto): Promise<ApiResponseDto<{ user: AuthenticatedUser; tokens: AuthTokens }>> {
@@ -180,6 +182,53 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
+  }
+
+  async forgotPassword(email: string): Promise<ApiResponseDto<undefined>> {
+    const normalizedEmail = email.toLowerCase();
+    const user = await this.usersRepo.findOne({ where: { email: normalizedEmail } });
+
+    // Don't reveal if user exists or not for security
+    if (!user) {
+      // Still return success to prevent email enumeration
+      return new ApiResponseDto({
+        success: true,
+        message: 'If the email exists, a new password has been sent.',
+        data: undefined,
+      });
+    }
+
+    // Generate a random password
+    const newPassword = this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    await this.usersRepo.update(user.id, { password: hashedPassword });
+
+    // Send email with new password
+    try {
+      await this.emailService.sendPasswordResetEmail(user.email, newPassword);
+    } catch (error) {
+      this.logger.error('Failed to send password reset email', error instanceof Error ? error.stack : String(error));
+      // Rollback password change if email fails
+      throw new Error('Failed to send password reset email. Please try again later.');
+    }
+
+    return new ApiResponseDto({
+      success: true,
+      message: 'If the email exists, a new password has been sent to your email.',
+      data: undefined,
+    });
+  }
+
+  private generateRandomPassword(): string {
+    const length = 12;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
   }
 
   private async createLoyaltyForCustomer(userId: number): Promise<void> {

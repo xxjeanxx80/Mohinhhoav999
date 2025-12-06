@@ -14,7 +14,11 @@ export class AdminController {
 
   @Get('metrics')
   @Auth(Role.ADMIN)
-  getMetrics() {
+  async getMetrics(@Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'VIEW_METRICS');
+    }
     return this.adminService.getMetrics();
   }
 
@@ -48,25 +52,41 @@ export class AdminController {
 
   @Get('logs')
   @Auth(Role.ADMIN)
-  getLogs() {
+  async getLogs(@Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'VIEW_LOGS');
+    }
     return this.adminService.getLogs();
   }
 
   @Get('reports')
   @Auth(Role.ADMIN)
-  getReports() {
+  async getReports(@Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'VIEW_REPORTS');
+    }
     return this.adminService.getReports();
   }
 
   @Get('owners')
   @Auth(Role.ADMIN)
-  getOwners() {
+  async getOwners(@Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'VIEW_OWNERS');
+    }
     return this.adminService.getOwners();
   }
 
   @Get('payouts')
   @Auth(Role.ADMIN)
-  getAllPayouts() {
+  async getAllPayouts(@Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'VIEW_PAYOUTS');
+    }
     return this.adminService.getAllPayouts();
   }
 }

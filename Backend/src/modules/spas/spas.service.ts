@@ -163,10 +163,21 @@ export class SpasService {
       throw new NotFoundException('Spa not found.');
     }
 
+    // If rejecting (isApproved = false), delete the spa so owner must register again
+    if (!dto.isApproved) {
+      await this.spaRepository.delete(id);
+      return new ApiResponseDto({ 
+        success: true, 
+        message: 'Spa rejected and removed. Owner must register again.', 
+        data: null 
+      });
+    }
+
+    // If approving (isApproved = true), update the spa
     spa.isApproved = dto.isApproved;
     await this.spaRepository.save(spa);
 
-    return new ApiResponseDto({ success: true, message: 'Spa approval updated.', data: spa });
+    return new ApiResponseDto({ success: true, message: 'Spa approved.', data: spa });
   }
 
   async remove(id: number) {

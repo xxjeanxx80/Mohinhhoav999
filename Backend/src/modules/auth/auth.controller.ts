@@ -4,6 +4,7 @@ import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { AuthService, AuthenticatedUser, AuthTokens } from './auth.service';
 
 @ApiTags('Auth')
@@ -30,5 +31,12 @@ export class AuthController {
     @Body() dto: RefreshTokenDto,
   ): Promise<ApiResponseDto<{ tokens: AuthTokens }>> {
     return this.authService.refreshTokens(dto);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<ApiResponseDto<undefined>> {
+    return this.authService.forgotPassword(dto.email);
   }
 }

@@ -13,6 +13,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoyaltyRank } from './enums/loyalty-rank.enum';
 import { UsersService } from './users.service';
 import { MediaService } from '../media/media.service';
+import { AdminService } from '../admin/admin.service';
 
 @ApiBearerAuth('Authorization')
 @Controller('users')
@@ -20,11 +21,19 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly mediaService: MediaService,
+    private readonly adminService: AdminService,
   ) {}
 
   @Post()
   @Auth(Role.ADMIN)
-  create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto, @Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'CREATE_USER', {
+        email: dto.email,
+        role: dto.role || 'CUSTOMER',
+      });
+    }
     return this.usersService.create(dto);
   }
 
@@ -96,9 +105,25 @@ export class UsersController {
     return this.usersService.changePassword(id, dto.currentPassword, dto.newPassword);
   }
 
+  @Delete('me')
+  @Auth(Role.ADMIN, Role.CUSTOMER, Role.OWNER)
+  removeSelf(@Req() req: Request) {
+    const currentUser = req.user as { id: number; role: Role } | undefined;
+    if (!currentUser) {
+      throw new ForbiddenException('Authentication context is missing.');
+    }
+    return this.usersService.remove(currentUser.id);
+  }
+
   @Delete(':id')
   @Auth(Role.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    const admin = req.user as { id: number } | undefined;
+    if (admin) {
+      await this.adminService.recordAdminAction(admin.id, 'DELETE_USER', {
+        userId: id,
+      });
+    }
     return this.usersService.remove(id);
   }
 

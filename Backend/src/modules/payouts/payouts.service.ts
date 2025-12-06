@@ -29,7 +29,7 @@ export class PayoutsService {
 
     // Check if bank account is linked
     if (!user.bankName || !user.bankAccountNumber || !user.bankAccountHolder) {
-      throw new BadRequestException('Please link your bank account in settings before requesting payout.');
+      throw new BadRequestException('Vui lòng liên kết tài khoản ngân hàng trong cài đặt trước khi yêu cầu thanh toán.');
     }
 
     // Calculate available profit based on role
@@ -214,9 +214,27 @@ export class PayoutsService {
     return new ApiResponseDto({ success: true, message: 'Payout completed.', data: saved });
   }
 
+  async findOne(id: number) {
+    const payout = await this.payoutRepository.findOne({
+      where: { id },
+      relations: ['owner'],
+    });
+
+    if (!payout) {
+      throw new NotFoundException('Payout not found.');
+    }
+
+    return new ApiResponseDto({
+      success: true,
+      message: 'Payout retrieved.',
+      data: payout,
+    });
+  }
+
   async findByOwner(ownerId: number) {
     const payouts = await this.payoutRepository.find({
       where: { owner: { id: ownerId } },
+      relations: ['owner'],
       order: { requestedAt: 'DESC' },
     });
 

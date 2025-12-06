@@ -1,7 +1,7 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { Role } from '../../common/enums/role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,15 +12,33 @@ import { Loyalty } from './entities/loyalty.entity';
 import { User } from './entities/user.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { Feedback } from '../feedbacks/entities/feedback.entity';
+import { Spa } from '../spas/entities/spa.entity';
+import { Payment } from '../payments/entities/payment.entity';
+import { Payout } from '../payouts/entities/payout.entity';
+import { Report } from '../reports/entities/report.entity';
+import { Notification } from '../notifications/entities/notification.entity';
+import { Post } from '../posts/entities/post.entity';
+import { SpaService } from '../services/entities/service.entity';
+import { Staff } from '../staff/entities/staff.entity';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User) private readonly usersRepo: Repository<User>,
     @InjectRepository(Loyalty) private readonly loyaltyRepo: Repository<Loyalty>,
     @InjectRepository(LoyaltyHistory) private readonly loyaltyHistoryRepo: Repository<LoyaltyHistory>,
     @InjectRepository(Booking) private readonly bookingRepo: Repository<Booking>,
     @InjectRepository(Feedback) private readonly feedbackRepo: Repository<Feedback>,
+    @InjectRepository(Spa) private readonly spaRepo: Repository<Spa>,
+    @InjectRepository(Payment) private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(Payout) private readonly payoutRepo: Repository<Payout>,
+    @InjectRepository(Report) private readonly reportRepo: Repository<Report>,
+    @InjectRepository(Notification) private readonly notificationRepo: Repository<Notification>,
+    @InjectRepository(Post) private readonly postRepo: Repository<Post>,
+    @InjectRepository(SpaService) private readonly spaServiceRepo: Repository<SpaService>,
+    @InjectRepository(Staff) private readonly staffRepo: Repository<Staff>,
   ) {}
 
   async create(dto: CreateUserDto): Promise<ApiResponseDto<{ user: User }>> {
@@ -29,6 +47,11 @@ export class UsersService {
     const existing = await this.usersRepo.findOne({ where: { email } });
     if (existing) {
       throw new ConflictException('Email already exists.');
+    }
+
+    // Prevent creating ADMIN role - only one admin allowed
+    if (dto.role === Role.ADMIN) {
+      throw new ConflictException('Cannot create another ADMIN user. Only one admin is allowed.');
     }
 
     const user = this.usersRepo.create({
@@ -108,6 +131,10 @@ export class UsersService {
     }
 
     if (dto.role) {
+      // Prevent changing role to ADMIN - only one admin allowed
+      if (dto.role === Role.ADMIN) {
+        throw new ConflictException('Cannot change role to ADMIN. Only one admin is allowed.');
+      }
       user.role = dto.role;
     }
 
@@ -125,12 +152,87 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<ApiResponseDto<undefined>> {
-    const result = await this.usersRepo.delete(id);
-    if (!result.affected) {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found.');
     }
 
-    return new ApiResponseDto({ success: true, message: 'User deleted successfully.' });
+    this.logger.log(`Starting deletion process for user ${id} (${user.email})`);
+
+    // 1. Find all spas owned by this user
+    const ownedSpas = await this.spaRepo.find({ where: { owner: { id } } });
+    const spaIds = ownedSpas.map(spa => spa.id);
+
+    if (spaIds.length > 0) {
+      this.logger.log(`Found ${spaIds.length} spa(s) owned by user ${id}`);
+
+      // 1.1. Delete payments related to bookings of these spas
+      const spaBookings = await this.bookingRepo.find({ where: { spa: { id: In(spaIds) } } });
+      const bookingIds = spaBookings.map(b => b.id);
+      if (bookingIds.length > 0) {
+        await this.paymentRepo.delete({ bookingId: In(bookingIds) });
+        this.logger.log(`Deleted ${bookingIds.length} payment(s) related to spa bookings`);
+      }
+
+      // 1.2. Delete feedbacks of spa bookings first (before deleting bookings)
+      // This avoids foreign key constraint issues
+      await this.feedbackRepo.delete({ spa: { id: In(spaIds) } });
+      this.logger.log(`Deleted feedbacks of spas`);
+
+      // 1.3. Delete bookings of spas
+      await this.bookingRepo.delete({ spa: { id: In(spaIds) } });
+      this.logger.log(`Deleted bookings of spas`);
+
+      // 1.4. Delete services of spas
+      await this.spaServiceRepo.delete({ spa: { id: In(spaIds) } });
+      this.logger.log(`Deleted services of spas`);
+
+      // 1.5. Delete staff of spas (staff skills, shifts, time offs will cascade delete)
+      await this.staffRepo.delete({ spa: { id: In(spaIds) } });
+      this.logger.log(`Deleted staff of spas`);
+
+      // 1.6. Delete posts of spas
+      await this.postRepo.delete({ spa: { id: In(spaIds) } });
+      this.logger.log(`Deleted posts of spas`);
+
+      // 1.7. Delete spas
+      await this.spaRepo.delete({ id: In(spaIds) });
+      this.logger.log(`Deleted ${spaIds.length} spa(s)`);
+    }
+
+    // 2. Delete bookings where user is customer
+    const userBookings = await this.bookingRepo.find({ where: { customer: { id } } });
+    const userBookingIds = userBookings.map(b => b.id);
+    if (userBookingIds.length > 0) {
+      // Delete payments related to user bookings
+      await this.paymentRepo.delete({ bookingId: In(userBookingIds) });
+      this.logger.log(`Deleted payments related to user bookings`);
+    }
+    await this.bookingRepo.delete({ customer: { id } });
+    this.logger.log(`Deleted bookings where user is customer`);
+
+    // 3. Delete feedbacks where user is customer (if any remain)
+    await this.feedbackRepo.delete({ customer: { id } });
+    this.logger.log(`Deleted feedbacks where user is customer`);
+
+    // 4. Delete payouts where user is owner
+    await this.payoutRepo.delete({ owner: { id } });
+    this.logger.log(`Deleted payouts where user is owner`);
+
+    // 5. Delete reports where user is reporter
+    await this.reportRepo.delete({ reporter: { id } });
+    this.logger.log(`Deleted reports where user is reporter`);
+
+    // 6. Delete notifications for user
+    await this.notificationRepo.delete({ user: { id } });
+    this.logger.log(`Deleted notifications for user`);
+
+    // 7. Favorites, Loyalty, LoyaltyHistory will be deleted by CASCADE
+    // 8. Finally delete the user
+    await this.usersRepo.delete(id);
+    this.logger.log(`User ${id} deleted successfully`);
+
+    return new ApiResponseDto({ success: true, message: 'User and all related data deleted successfully.' });
   }
 
   async addPoints(customerId: number, points: number, reason: string): Promise<ApiResponseDto<{ loyalty: Loyalty }>> {

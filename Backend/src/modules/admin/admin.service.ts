@@ -70,7 +70,10 @@ export class AdminService {
   }
 
   async getLogs() {
-    const logs = await this.adminLogRepository.find({ order: { createdAt: 'DESC' } });
+    const logs = await this.adminLogRepository.find({ 
+      relations: ['admin'],
+      order: { createdAt: 'DESC' } 
+    });
     return new ApiResponseDto({ success: true, message: 'Admin logs retrieved.', data: logs });
   }
 
@@ -93,6 +96,10 @@ export class AdminService {
       order: { requestedAt: 'DESC' },
     });
     return new ApiResponseDto({ success: true, message: 'All payouts retrieved.', data: { payouts } });
+  }
+
+  async recordAdminAction(adminId: number, action: string, details?: Record<string, unknown>) {
+    await this.recordLog(adminId, action, details);
   }
 
   private async calculateMetrics(): Promise<MetricsPayload> {
