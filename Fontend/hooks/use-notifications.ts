@@ -21,6 +21,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<BookingNotification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
 
   const fetchNotifications = async () => {
     try {
@@ -89,23 +90,42 @@ export function useNotifications() {
 
   useEffect(() => {
     fetchNotifications()
+    // Load read notifications from localStorage
+    const savedReadNotifications = localStorage.getItem('readNotifications')
+    if (savedReadNotifications) {
+      try {
+        setReadNotifications(new Set(JSON.parse(savedReadNotifications)))
+      } catch (err) {
+        console.error('Failed to parse read notifications from localStorage:', err)
+      }
+    }
     // Refresh every 30 seconds
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const unreadCount = notifications.filter((n) => {
-    // Consider notifications from last 7 days as potentially unread
+    // Consider notifications from last 7 days AND not marked as read
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    return new Date(n.createdAt) > sevenDaysAgo
+    const isRecent = new Date(n.createdAt) > sevenDaysAgo
+    const isUnread = !readNotifications.has(n.id)
+    return isRecent && isUnread
   }).length
+
+  const markAsRead = (notificationId: string) => {
+    const newReadNotifications = new Set(readNotifications)
+    newReadNotifications.add(notificationId)
+    setReadNotifications(newReadNotifications)
+    localStorage.setItem('readNotifications', JSON.stringify([...newReadNotifications]))
+  }
 
   return { 
     notifications, 
     loading, 
     error, 
     unreadCount,
+    markAsRead,
     refetch: fetchNotifications 
   }
 }

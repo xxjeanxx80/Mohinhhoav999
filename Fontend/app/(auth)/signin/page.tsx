@@ -9,17 +9,33 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SignIn() {
   const router = useRouter()
   const { login, loading, error } = useAuth()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({ email: "", password: "" })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const result = await login(formData)
     if (result.success) {
-      router.push(`/${result.role.toLowerCase()}`)
+      toast({
+        title: "Login successful",
+        description: `Welcome back!`,
+      })
+      if (result.role) {
+        router.push(`/${result.role.toLowerCase()}`)
+      } else {
+        router.push("/customer") // Default fallback
+      }
+    } else {
+      toast({
+        title: "Login failed",
+        description: result.error || "You have entered an incorrect email or password",
+        variant: "destructive",
+      })
     }
   }
 
@@ -51,6 +67,11 @@ export default function SignIn() {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
+          </div>
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700">
+              Forgot password?
+            </Link>
           </div>
           <Button
             type="submit"

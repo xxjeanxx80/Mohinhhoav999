@@ -20,12 +20,10 @@ import { getSpaImage, getServiceImage } from "@/lib/image-utils"
 import { SpaAvatar } from "@/components/spa-avatar"
 import { PostImage } from "@/components/post-image"
 import { toast } from "@/hooks/use-toast"
-import { useLanguage } from "@/contexts/language-context"
 import { SpaCardSkeleton, FeedbackCardSkeleton, BlogCardSkeleton } from "@/components/ui/skeleton"
 
 export default function Home() {
   const router = useRouter()
-  const { t, language } = useLanguage()
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [findingLocation, setFindingLocation] = useState(false)
@@ -67,8 +65,8 @@ export default function Home() {
     
     if (!isSecureOrigin) {
       toast({
-        title: "Lỗi bảo mật",
-        description: "Geolocation chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua localhost:3000",
+        title: "Security Error",
+        description: "Geolocation only works on HTTPS or localhost. Please access via localhost:3000",
         variant: "destructive",
       })
       return
@@ -76,8 +74,8 @@ export default function Home() {
     
     if (!navigator.geolocation) {
       toast({
-        title: "Lỗi",
-        description: "Trình duyệt không hỗ trợ định vị",
+        title: "Error",
+        description: "Browser does not support geolocation",
         variant: "destructive",
       })
       return
@@ -101,7 +99,7 @@ export default function Home() {
         
         // Show debug info to user
         toast({
-          title: "Vị trí của bạn",
+          title: "Your Location",
           description: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)} (Accuracy: ±${Math.round(position.coords.accuracy || 0)}m)`,
         })
         
@@ -110,32 +108,32 @@ export default function Home() {
       },
       (error) => {
         setFindingLocation(false)
-        let errorMessage = "Vui lòng cho phép truy cập vị trí của bạn"
+        let errorMessage = "Please allow access to your location"
         let showFallback = false
         
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Quyền truy cập vị trí bị từ chối. Vui lòng cho phép trong cài đặt trình duyệt."
+            errorMessage = "Location access denied. Please allow in your browser settings."
             showFallback = true
             break
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "Không thể xác định vị trí của bạn."
+            errorMessage = "Unable to determine your location."
             showFallback = true
             break
           case error.TIMEOUT:
-            errorMessage = "Hết thời gian chờ định vị. Vui lòng thử lại."
+            errorMessage = "Location request timed out. Please try again."
             showFallback = true
             break
         }
         
         // Check for secure origin error
         if (error.message && error.message.includes("secure origins")) {
-          errorMessage = "Geolocation chỉ hoạt động trên HTTPS hoặc localhost. Vui lòng truy cập qua localhost:3000"
+          errorMessage = "Geolocation only works on HTTPS or localhost. Please access via localhost:3000"
           showFallback = true
         }
         
         toast({
-          title: "Lỗi định vị",
+          title: "Location Error",
           description: errorMessage,
           variant: "destructive",
         })
@@ -143,7 +141,7 @@ export default function Home() {
         // Offer fallback option
         if (showFallback) {
           setTimeout(() => {
-            const useFallback = confirm("Bạn có muốn xem tất cả spa thay vì tìm theo vị trí không?")
+            const useFallback = confirm("Would you like to view all spas instead of searching by location?")
             if (useFallback) {
               router.push("/spas")
             }
@@ -171,13 +169,12 @@ export default function Home() {
         }}
       >
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-slate-900 mb-8" suppressHydrationWarning>{t.findSpaNearby}</h1>
+          <h1 className="text-5xl font-bold text-slate-900 mb-8">Find spa near you!</h1>
           
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="bg-white rounded-full shadow-lg p-2 flex gap-2 max-w-3xl mx-auto mb-4">
             <Input 
-              placeholder={t.searchPlaceholder}
-              suppressHydrationWarning 
+              placeholder="Enter spa name or service..."
               className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-6"
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
@@ -201,7 +198,7 @@ export default function Home() {
               disabled={findingLocation}
             >
               <Navigation className="w-5 h-5 mr-2" />
-              <span suppressHydrationWarning>{findingLocation ? t.findingLocation : t.findNearby}</span>
+              <span>{findingLocation ? "Finding..." : "Near Me"}</span>
             </Button>
           </form>
         </div>
@@ -211,16 +208,16 @@ export default function Home() {
       <section className="py-12 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Card 1 - Khám phá ưu đãi */}
+            {/* Card 1 - Explore Special Offers */}
             <Card className="bg-gradient-to-r from-amber-500 to-amber-600 text-white overflow-hidden relative">
               <CardContent className="p-8 flex items-center gap-6">
                 <div className="flex-1">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-lg mb-4">
                     <span className="text-2xl">🎁</span>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2" suppressHydrationWarning>{t.exploreSpecialOffers}</h3>
-                  <p className="text-amber-100" suppressHydrationWarning>
-                    {t.exploreSpecialOffersDesc}
+                  <h3 className="text-2xl font-bold mb-2">Explore Special Offers</h3>
+                  <p className="text-amber-100">
+                    Nothing beats special offers delivered right to your door about spa
                   </p>
                 </div>
                 <div className="hidden md:block">
@@ -236,16 +233,16 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Card 2 - Đặt lịch hẹn */}
+            {/* Card 2 - Book Online Appointment */}
             <Card className="bg-gradient-to-r from-red-600 to-red-700 text-white overflow-hidden relative">
               <CardContent className="p-8 flex items-center gap-6">
                 <div className="flex-1">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-lg mb-4">
                     <span className="text-2xl">📅</span>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2" suppressHydrationWarning>{t.bookOnlineAppointment}</h3>
-                  <p className="text-red-100" suppressHydrationWarning>
-                    {t.bookOnlineAppointmentDesc}
+                  <h3 className="text-2xl font-bold mb-2">Book Online Appointment</h3>
+                  <p className="text-red-100">
+                    Book appointments quickly and easily, enjoy right away
                   </p>
                 </div>
                 <div className="hidden md:block">
@@ -268,19 +265,19 @@ export default function Home() {
       <section className="py-16 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-3" suppressHydrationWarning>{t.chooseSpaByService}</h2>
-            <p className="text-slate-600" suppressHydrationWarning>
-              {t.chooseSpaByServiceDesc}
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">Choose spa by desired service</h2>
+            <p className="text-slate-600">
+              With a wide network of spas, we help you easily search according to your needs and preferences for services whenever you need and diverse suitable rooms
             </p>
           </div>
           <div className="flex justify-center gap-8 flex-wrap">
             {[
-              { name: "Chăm sóc da", keywords: ["chăm sóc da", "da mặt", "dưỡng ẩm"], tag: 0 },
-              { name: "Làm móng", keywords: ["làm móng", "móng", "nail"], tag: 1 },
-              { name: "Ngâm chân", keywords: ["ngâm chân", "chân"], tag: 2 },
-              { name: "Trị liệu", keywords: ["trị liệu", "therapy"], tag: 3 },
-              { name: "Massage Trị Liệu", keywords: ["massage", "mát xa", "trị liệu"], tag: 4 },
-              { name: "Massage Thư Giãn", keywords: ["massage", "mát xa", "thư giãn"], tag: 5 },
+              { name: "Skincare", keywords: ["skincare", "facial", "moisturizing"], tag: 0 },
+              { name: "Nail Care", keywords: ["nail care", "nails", "manicure"], tag: 1 },
+              { name: "Foot Spa", keywords: ["foot spa", "feet"], tag: 2 },
+              { name: "Therapy", keywords: ["therapy", "treatment"], tag: 3 },
+              { name: "Therapeutic Massage", keywords: ["massage", "therapy"], tag: 4 },
+              { name: "Relaxation Massage", keywords: ["massage", "relaxation"], tag: 5 },
             ].map((service, i) => {
               const serviceImageUrl = serviceImages[service.tag]
               const fallbackImage = getServiceImage(service.name)
@@ -313,7 +310,7 @@ export default function Home() {
       {/* Featured Spas */}
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12" suppressHydrationWarning>{t.featuredSpas}</h2>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Featured Spas</h2>
           {spasLoading ? (
             <div className="grid md:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
@@ -321,7 +318,7 @@ export default function Home() {
               ))}
             </div>
           ) : spas.length === 0 ? (
-            <div className="text-center py-12 text-slate-500" suppressHydrationWarning>{t.noSpasYet}</div>
+            <div className="text-center py-12 text-slate-500">No spas yet</div>
           ) : (
             <div className="grid md:grid-cols-4 gap-6">
               {spas.slice(0, 8).map((spa: { id: number; name: string; address?: string }) => (
@@ -332,7 +329,7 @@ export default function Home() {
                     </div>
                     <CardContent className="p-4">
                       <h3 className="font-bold text-slate-900 mb-1">{spa.name}</h3>
-                      <p className="text-xs text-slate-500 mb-3 line-clamp-1" suppressHydrationWarning>{spa.address || t.noAddress}</p>
+                      <p className="text-xs text-slate-500 mb-3 line-clamp-1">{spa.address || "No address"}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -345,17 +342,17 @@ export default function Home() {
                             const wasFavorite = isFavorite(spa.id)
                             toggleFavorite(spa.id)
                             toast({
-                              title: wasFavorite ? "Đã xóa khỏi yêu thích" : "Đã thêm vào yêu thích",
+                              title: wasFavorite ? "Removed from favorites" : "Added to favorites",
                               description: `${spa.name}`,
                             })
                           }}
                           className="p-1.5 hover:bg-amber-50 rounded-full transition z-10"
-                          title={isFavorite(spa.id) ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                          title={isFavorite(spa.id) ? "Remove from favorites" : "Add to favorites"}
                         >
                           <Heart className={`w-4 h-4 transition ${isFavorite(spa.id) ? "text-amber-500 fill-amber-500" : "text-slate-400 hover:text-amber-500"}`} />
                         </button>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">1 tháng gần đây</p>
+                      <p className="text-xs text-slate-400 mt-1">Recent month</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -368,7 +365,7 @@ export default function Home() {
       {/* Reviews Section */}
       <section className="py-16 bg-red-600">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-12">Đánh giá khách hàng</h2>
+          <h2 className="text-3xl font-bold text-white mb-12">Customer Reviews</h2>
           {feedbacksLoading ? (
             <div className="grid md:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
@@ -376,7 +373,7 @@ export default function Home() {
               ))}
             </div>
           ) : feedbacks.length === 0 ? (
-            <div className="text-center py-12 text-white">Chưa có đánh giá nào</div>
+            <div className="text-center py-12 text-white">No reviews yet</div>
           ) : (
             <div className="grid md:grid-cols-4 gap-6">
               {feedbacks.slice(0, 4).map((feedback: { id: number; rating: number; comment?: string; customer?: { name?: string } }) => (
@@ -386,8 +383,8 @@ export default function Home() {
                       <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-slate-700 mb-3">{feedback.comment || "Dịch vụ tuyệt vời!"}</p>
-                  <p className="font-semibold text-slate-900">{feedback.customer?.name || "Khách hàng"}</p>
+                  <p className="text-slate-700 mb-3">{feedback.comment || "Excellent service!"}</p>
+                  <p className="font-semibold text-slate-900">{feedback.customer?.name || "Customer"}</p>
                 </div>
               ))}
             </div>
@@ -398,7 +395,7 @@ export default function Home() {
       {/* Blogs Section */}
       <section className="py-16 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12" suppressHydrationWarning>{t.blogTitle}</h2>
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Blog</h2>
           {postsLoading ? (
             <div className="grid md:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
@@ -406,16 +403,16 @@ export default function Home() {
               ))}
             </div>
           ) : publicPosts.length === 0 ? (
-            <div className="text-center py-12 text-slate-500" suppressHydrationWarning>{t.noPostsYet}</div>
+            <div className="text-center py-12 text-slate-500">No posts yet</div>
           ) : (
             <>
               <div className="grid md:grid-cols-3 gap-6">
                 {publicPosts.slice(0, 3).map((post: PublicPost) => {
-                  const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString(language === "VN" ? 'vi-VN' : 'en-US', {
+                  const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  }) : t.noDate
+                  }) : "No date"
                   const spaName = post.spa?.name || "Spa"
                   return (
                     <Link href={`/blog/${post.id}`} key={post.id}>
@@ -434,8 +431,8 @@ export default function Home() {
               {publicPosts.length > 3 && (
                 <div className="text-center mt-10">
                   <Link href="/blog">
-                    <Button className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-6 rounded-full text-base font-medium" suppressHydrationWarning>
-                      {t.exploreNow}
+                    <Button className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-6 rounded-full text-base font-medium">
+                      Explore Now
                     </Button>
                   </Link>
                 </div>

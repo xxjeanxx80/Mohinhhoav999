@@ -11,7 +11,6 @@ import {
   Users, 
   Store, 
   Gift, 
-  FileText, 
   Settings, 
   LogOut,
   Calendar,
@@ -66,7 +65,6 @@ const menuGroups: MenuGroup[] = [
     label: "Marketing",
     icon: Megaphone,
     items: [
-      { href: "/admin/campaigns", label: "Campaigns", icon: Gift },
       { href: "/admin/promotions", label: "Promotions", icon: Gift },
     ],
   },
@@ -81,7 +79,6 @@ const menuGroups: MenuGroup[] = [
     label: "Content Management",
     icon: Folder,
     items: [
-      { href: "/admin/cms", label: "CMS", icon: FileText },
       { href: "/admin/homepage", label: "Homepage", icon: LayoutDashboard },
       { href: "/admin/moderation", label: "Moderation", icon: AlertCircle },
     ],

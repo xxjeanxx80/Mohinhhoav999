@@ -2,8 +2,6 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import { User } from '../../users/entities/user.entity';
 
 export enum NotificationChannel {
-  EMAIL = 'EMAIL',
-  SMS = 'SMS',
   PUSH = 'PUSH',
 }
 

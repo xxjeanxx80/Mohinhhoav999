@@ -120,6 +120,7 @@ export class CouponsService {
         discountValue: coupon.discountPercent,
         isActive: coupon.isActive,
         expiresAt: coupon.expiresAt,
+        spaId: coupon.spaId,
       }
     });
   }

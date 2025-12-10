@@ -53,8 +53,8 @@ export default function OwnerFeedbacks() {
     } catch (error: any) {
       console.error("Failed to fetch feedbacks:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách đánh giá",
+        title: "Error",
+        description: "Failed to load feedbacks",
         variant: "destructive",
       })
     } finally {
@@ -80,7 +80,7 @@ export default function OwnerFeedbacks() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -89,24 +89,24 @@ export default function OwnerFeedbacks() {
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Đánh giá khách hàng</h1>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">Xem và quản lý đánh giá từ khách hàng</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Customer Feedbacks</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">View and manage customer feedbacks</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Tất cả đánh giá
+            All Feedbacks
           </CardTitle>
-          <CardDescription>{feedbacks.length} đánh giá từ khách hàng</CardDescription>
+          <CardDescription>{feedbacks.length} customer feedbacks</CardDescription>
         </CardHeader>
         <CardContent>
           {feedbacks.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <MessageSquare className="h-16 w-16 mx-auto mb-4 text-slate-300" />
-              <p className="text-lg font-medium">Chưa có đánh giá nào</p>
-              <p className="text-sm mt-2">Khách hàng sẽ xuất hiện ở đây sau khi họ đánh giá dịch vụ</p>
+              <p className="text-lg font-medium">No feedbacks yet</p>
+              <p className="text-sm mt-2">Feedbacks will appear here after customers rate your services</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -140,14 +140,14 @@ export default function OwnerFeedbacks() {
 
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600">
                           <div className="truncate">
-                            <span className="font-medium">Khách hàng:</span> {feedback.customer?.name || "N/A"}
+                            <span className="font-medium">Customer:</span> {feedback.customer?.name || "N/A"}
                           </div>
                           <div className="truncate">
                             <span className="font-medium">Spa:</span> {feedback.spa?.name || "N/A"}
                           </div>
                           <div className="truncate">
-                            <span className="font-medium">Ngày:</span>{" "}
-                            {new Date(feedback.createdAt).toLocaleString("vi-VN", {
+                            <span className="font-medium">Date:</span>{" "}
+                            {new Date(feedback.createdAt).toLocaleString("en-US", {
                               year: 'numeric',
                               month: '2-digit',
                               day: '2-digit',
@@ -166,7 +166,7 @@ export default function OwnerFeedbacks() {
                           className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         >
                           <AlertTriangle size={16} className="mr-1" />
-                          Báo cáo
+                          Report
                         </Button>
                       </div>
                     </div>

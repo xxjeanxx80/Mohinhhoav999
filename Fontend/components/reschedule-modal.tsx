@@ -25,6 +25,33 @@ export function RescheduleModal({
 
   if (!isOpen || !booking) return null
 
+  // Check if booking can be rescheduled
+  const canReschedule = booking.status !== "CONFIRMED" && 
+                       (!booking.rescheduleCount || booking.rescheduleCount < 1)
+
+  if (!canReschedule) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg w-full max-w-md p-6">
+          <div className="text-center">
+            <h2 className="text-xl font-bold mb-4">Không thể đổi lịch</h2>
+            <p className="text-gray-600 mb-6">
+              {booking.status === "CONFIRMED" 
+                ? "Lịch hẹn đã được xác nhận và không thể đổi lịch."
+                : "Bạn đã đổi lịch hẹn này 1 lần. Không thể đổi lịch thêm."}
+            </p>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime) {
       toast({
@@ -37,8 +64,11 @@ export function RescheduleModal({
 
     setLoading(true)
     try {
-      // Combine date and time into ISO string
-      const scheduledAt = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+      // Create a date object from the selected date and time
+      const dateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+      
+      // Format to ISO string without milliseconds
+      const scheduledAt = dateTime.toISOString().split('.')[0] + 'Z';
       
       await bookingsAPI.reschedule(booking.id, {
         scheduledAt,
@@ -53,9 +83,29 @@ export function RescheduleModal({
       onSuccess?.()
     } catch (error: any) {
       console.error("Reschedule error:", error)
+      let errorMessage = "Không thể dời lịch hẹn"
+      
+      if (error.response) {
+        console.error("Error response data:", error.response.data)
+        console.error("Error status:", error.response.status)
+        console.error("Error headers:", error.response.headers)
+        
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message
+        } else if (error.response.status === 500) {
+          errorMessage = "Lỗi máy chủ nội bộ. Vui lòng thử lại sau."
+        }
+      } else if (error.request) {
+        console.error("No response received:", error.request)
+        errorMessage = "Không nhận được phản hồi từ máy chủ"
+      } else {
+        console.error("Error setting up request:", error.message)
+        errorMessage = `Lỗi: ${error.message}`
+      }
+
       toast({
         title: "Lỗi",
-        description: error.response?.data?.message || "Không thể dời lịch hẹn",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {

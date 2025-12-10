@@ -5,21 +5,28 @@ import type React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { User, Upload, Camera } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useToast } from "@/hooks/use-toast"
 import { usersAPI } from "@/lib/api-service"
 import { useLanguage } from "@/contexts/language-context"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function CustomerAccount() {
+  const router = useRouter()
   const { user, loading: userLoading, refetch } = useUser()
   const { toast } = useToast()
-  const { t, language } = useLanguage()
+  const { t } = useLanguage()
+  const { logout } = useAuth()
   const [updating, setUpdating] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -92,7 +99,7 @@ export default function CustomerAccount() {
 
     try {
       setUpdating(true)
-      const response = await usersAPI.update(user.id, {
+      const response = await usersAPI.update(Number(user.id), {
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
@@ -111,8 +118,8 @@ export default function CustomerAccount() {
       }
       
       toast({
-        title: "Thành công",
-        description: "Đã cập nhật thông tin cá nhân thành công",
+        title: "Success",
+        description: "Profile updated successfully",
       })
       
       // Refetch user data to update UI immediately
@@ -121,8 +128,8 @@ export default function CustomerAccount() {
       }
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể cập nhật thông tin",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update profile",
         variant: "destructive",
       })
     } finally {
@@ -135,8 +142,8 @@ export default function CustomerAccount() {
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "Lỗi",
-        description: "Mật khẩu mới không khớp",
+        title: "Error",
+        description: "New passwords do not match",
         variant: "destructive",
       })
       return
@@ -144,8 +151,8 @@ export default function CustomerAccount() {
 
     if (passwordData.newPassword.length < 6) {
       toast({
-        title: "Lỗi",
-        description: "Mật khẩu phải có ít nhất 6 ký tự",
+        title: "Error",
+        description: "Password must be at least 6 characters",
         variant: "destructive",
       })
       return
@@ -155,14 +162,14 @@ export default function CustomerAccount() {
 
     try {
       setChangingPassword(true)
-      await usersAPI.changePassword(user.id, {
+      await usersAPI.changePassword(Number(user.id), {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       })
       
       toast({
-        title: "Thành công",
-        description: "Đã đổi mật khẩu thành công",
+        title: "Success",
+        description: "Password changed successfully",
       })
       
       // Clear password fields
@@ -173,8 +180,8 @@ export default function CustomerAccount() {
       })
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể đổi mật khẩu",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to change password",
         variant: "destructive",
       })
     } finally {
@@ -188,8 +195,8 @@ export default function CustomerAccount() {
 
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Lỗi",
-        description: "Chỉ chấp nhận file hình ảnh",
+        title: "Error",
+        description: "Only image files are allowed",
         variant: "destructive",
       })
       return
@@ -197,8 +204,8 @@ export default function CustomerAccount() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Lỗi",
-        description: "File không được vượt quá 5MB",
+        title: "Error",
+        description: "File size must not exceed 5MB",
         variant: "destructive",
       })
       return
@@ -206,11 +213,11 @@ export default function CustomerAccount() {
 
     try {
       setUploadingAvatar(true)
-      await usersAPI.uploadAvatar(user.id, file)
+      await usersAPI.uploadAvatar(Number(user.id), file)
       
       toast({
-        title: "Thành công",
-        description: "Đã cập nhật ảnh đại diện thành công",
+        title: "Success",
+        description: "Avatar updated successfully",
       })
       
       // Refresh avatar
@@ -224,8 +231,8 @@ export default function CustomerAccount() {
       }
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể tải lên ảnh đại diện",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to upload avatar",
         variant: "destructive",
       })
     } finally {
@@ -233,6 +240,33 @@ export default function CustomerAccount() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone!")) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await usersAPI.deleteAccount()
+      toast({
+        title: "Success",
+        description: "Account deleted successfully",
+      })
+      logout()
+      router.push("/signin")
+    } catch (error: any) {
+      console.error("Failed to delete account:", error)
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete account",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
     }
   }
 
@@ -294,7 +328,7 @@ export default function CustomerAccount() {
                   disabled={uploadingAvatar}
                 />
               </div>
-              <p className="font-semibold text-slate-900 mb-4">{formData.name || user.name || "Chưa có tên"}</p>
+              <p className="font-semibold text-slate-900 mb-4">{formData.name || user.name || "No name"}</p>
               <p className="text-sm text-slate-500 mb-4">{user.email}</p>
               <Button 
                 variant="outline" 
@@ -303,34 +337,34 @@ export default function CustomerAccount() {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
               >
-                {uploadingAvatar ? "Đang tải..." : "Thay ảnh đại diện"}
+                {uploadingAvatar ? "Uploading..." : "Change Avatar"}
               </Button>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm mt-4">
             <CardHeader>
-              <CardTitle className="text-lg">Đổi mật khẩu</CardTitle>
+              <CardTitle className="text-lg">Change Password</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handlePasswordSubmit} className="space-y-3">
                 <Input 
                   name="currentPassword"
-                  placeholder="Mật khẩu hiện tại" 
+                  placeholder="Current password" 
                   type="password"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
                 />
                 <Input 
                   name="newPassword"
-                  placeholder="Mật khẩu mới" 
+                  placeholder="New password" 
                   type="password"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
                 />
                 <Input 
                   name="confirmPassword"
-                  placeholder="Xác nhận mật khẩu" 
+                  placeholder="Confirm password" 
                   type="password"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
@@ -371,7 +405,7 @@ export default function CustomerAccount() {
 
                 <div>
                   <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>
-                    Email <span className="text-slate-500 text-xs" suppressHydrationWarning>({language === "VN" ? "Không thể thay đổi" : "Cannot be changed"})</span>
+                    Email <span className="text-slate-500 text-xs" suppressHydrationWarning>(Cannot be changed)</span>
                   </label>
                   <Input
                     name="email"
@@ -436,45 +470,35 @@ export default function CustomerAccount() {
           {/* Bank Account Information */}
           <Card className="border-0 shadow-sm mt-6">
             <CardHeader>
-              <CardTitle suppressHydrationWarning>
-                {language === "VN" ? "Thông tin tài khoản ngân hàng" : "Bank Account Information"}
-              </CardTitle>
-              <CardDescription suppressHydrationWarning>
-                {language === "VN" ? "Liên kết tài khoản ngân hàng của bạn" : "Link your bank account for payouts"}
-              </CardDescription>
+              <CardTitle suppressHydrationWarning>Bank Account Information</CardTitle>
+              <CardDescription suppressHydrationWarning>Link your bank account for payouts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>
-                  {language === "VN" ? "Tên ngân hàng" : "Bank Name"}
-                </label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>Bank Name</label>
                 <Input 
                   type="text" 
-                  placeholder={language === "VN" ? "Ví dụ: Vietcombank, Techcombank" : "e.g., Vietcombank, Techcombank"}
+                  placeholder="e.g., Vietcombank, Techcombank"
                   value={bankData.bankName} 
                   onChange={(e) => setBankData({ ...bankData, bankName: e.target.value })} 
                   suppressHydrationWarning
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>
-                  {language === "VN" ? "Số tài khoản" : "Account Number"}
-                </label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>Account Number</label>
                 <Input 
                   type="text" 
-                  placeholder={language === "VN" ? "Nhập số tài khoản ngân hàng" : "Enter your bank account number"}
+                  placeholder="Enter your bank account number"
                   value={bankData.bankAccountNumber} 
                   onChange={(e) => setBankData({ ...bankData, bankAccountNumber: e.target.value })} 
                   suppressHydrationWarning
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>
-                  {language === "VN" ? "Tên chủ tài khoản" : "Account Holder Name"}
-                </label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block" suppressHydrationWarning>Account Holder Name</label>
                 <Input 
                   type="text" 
-                  placeholder={language === "VN" ? "Nhập tên chủ tài khoản" : "Enter account holder name"}
+                  placeholder="Enter account holder name"
                   value={bankData.bankAccountHolder} 
                   onChange={(e) => setBankData({ ...bankData, bankAccountHolder: e.target.value })} 
                   suppressHydrationWarning
@@ -486,30 +510,30 @@ export default function CustomerAccount() {
                 onClick={async () => {
                   if (!user?.id) {
                     toast({
-                      title: language === "VN" ? "Lỗi" : "Error",
-                      description: language === "VN" ? "Không tìm thấy người dùng" : "User not found",
+                      title: "Error",
+                      description: "User not found",
                       variant: "destructive",
                     })
                     return
                   }
                   try {
                     setSavingBank(true)
-                    await usersAPI.update(user.id, {
+                    await usersAPI.update(Number(user.id), {
                       bankName: bankData.bankName,
                       bankAccountNumber: bankData.bankAccountNumber,
                       bankAccountHolder: bankData.bankAccountHolder,
                     })
                     toast({
-                      title: language === "VN" ? "Thành công" : "Success",
-                      description: language === "VN" ? "Đã lưu thông tin tài khoản ngân hàng thành công!" : "Bank account information saved successfully!",
+                      title: "Success",
+                      description: "Bank account information saved successfully!",
                     })
                     if (refetch) {
                       await refetch()
                     }
                   } catch (error: any) {
                     toast({
-                      title: language === "VN" ? "Lỗi" : "Error",
-                      description: error.response?.data?.message || (language === "VN" ? "Không thể lưu thông tin tài khoản ngân hàng" : "Failed to save bank account information"),
+                      title: "Error",
+                      description: error.response?.data?.message || "Failed to save bank account information",
                       variant: "destructive",
                     })
                   } finally {
@@ -518,7 +542,7 @@ export default function CustomerAccount() {
                 }}
                 suppressHydrationWarning
               >
-                {savingBank ? (language === "VN" ? "Đang lưu..." : "Saving...") : (language === "VN" ? "Lưu thông tin ngân hàng" : "Save Bank Account")}
+                {savingBank ? "Saving..." : "Save Bank Account"}
               </Button>
             </CardContent>
           </Card>
@@ -530,11 +554,51 @@ export default function CustomerAccount() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-slate-600" suppressHydrationWarning>{t.irreversibleActions}</p>
-              <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-100 bg-transparent" suppressHydrationWarning>
+              <Button 
+                variant="outline" 
+                className="border-red-300 text-red-600 hover:bg-red-100 bg-transparent" 
+                onClick={() => setIsDeleteDialogOpen(true)}
+                suppressHydrationWarning
+              >
                 {t.deleteAccount}
               </Button>
             </CardContent>
           </Card>
+
+          {/* Delete Account Dialog */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. All your data will be permanently deleted.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="text-sm text-slate-600 mb-2">Data that will be deleted:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                  <li>All your bookings</li>
+                  <li>All feedbacks and reviews</li>
+                  <li>Loyalty points and history</li>
+                  <li>Favorites list</li>
+                  <li>All other related data</li>
+                </ul>
+                <p className="text-sm font-semibold text-red-600 mt-4">Are you sure you want to delete your account?</p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete Account"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

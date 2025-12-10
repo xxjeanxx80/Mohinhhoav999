@@ -6,26 +6,17 @@ import { Role } from '../../common/enums/role.enum';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { CouponsService } from './coupons.service';
-import { AdminService } from '../admin/admin.service';
 
 @ApiTags('coupons')
 @ApiBearerAuth('Authorization')
 @Controller('coupons')
 export class CouponsController {
-  constructor(
-    private readonly couponsService: CouponsService,
-    private readonly adminService: AdminService,
-  ) {}
+  constructor(private readonly couponsService: CouponsService) {}
 
   @Post()
   @Auth(Role.ADMIN, Role.OWNER)
-  async create(@Req() req: Request, @Body() dto: CreateCouponDto) {
+  create(@Req() req: Request, @Body() dto: CreateCouponDto) {
     const user = req.user as { id: number; role: string };
-    if (user.role === Role.ADMIN) {
-      await this.adminService.recordAdminAction(user.id, 'CREATE_COUPON', {
-        code: dto.code,
-      });
-    }
     return this.couponsService.create(dto, user.id, user.role);
   }
 
@@ -59,25 +50,13 @@ export class CouponsController {
 
   @Patch(':id')
   @Auth(Role.ADMIN, Role.OWNER)
-  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCouponDto, @Req() req: Request) {
-    const user = req.user as { id: number; role: string };
-    if (user.role === Role.ADMIN) {
-      await this.adminService.recordAdminAction(user.id, 'UPDATE_COUPON', {
-        couponId: id,
-      });
-    }
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCouponDto) {
     return this.couponsService.update(id, dto);
   }
 
   @Delete(':id')
   @Auth(Role.ADMIN, Role.OWNER)
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    const user = req.user as { id: number; role: string };
-    if (user.role === Role.ADMIN) {
-      await this.adminService.recordAdminAction(user.id, 'DELETE_COUPON', {
-        couponId: id,
-      });
-    }
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.couponsService.remove(id);
   }
 }

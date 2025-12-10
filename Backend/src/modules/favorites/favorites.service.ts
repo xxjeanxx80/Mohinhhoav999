@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Favorite } from './favorites.entity';
@@ -7,16 +7,12 @@ import { Spa } from '../spas/entities/spa.entity';
 
 @Injectable()
 export class FavoritesService {
-  private readonly logger = new Logger(FavoritesService.name);
-
   constructor(
     @InjectRepository(Favorite)
     private readonly favoritesRepository: Repository<Favorite>,
   ) {}
 
   async findAll(customerId: number): Promise<Favorite[]> {
-    this.logger.log(`Finding all favorites for customer ${customerId}`);
-    
     const favorites = await this.favoritesRepository.find({
       where: { customerId },
       relations: ['spa'],
@@ -27,8 +23,6 @@ export class FavoritesService {
   }
 
   async create(customerId: number, createFavoriteDto: CreateFavoriteDto): Promise<Favorite> {
-    this.logger.log(`Adding spa ${createFavoriteDto.spaId} to favorites for customer ${customerId}`);
-
     // Check if already favorited
     const existing = await this.favoritesRepository.findOne({
       where: { customerId, spaId: createFavoriteDto.spaId },
@@ -47,8 +41,6 @@ export class FavoritesService {
   }
 
   async remove(customerId: number, spaId: number): Promise<void> {
-    this.logger.log(`Removing spa ${spaId} from favorites for customer ${customerId}`);
-
     const favorite = await this.favoritesRepository.findOne({
       where: { customerId, spaId },
     });
@@ -70,8 +62,6 @@ export class FavoritesService {
 
   // Sync favorites from localStorage to database (migration)
   async syncFavorites(customerId: number, spaIds: number[]): Promise<Favorite[]> {
-    this.logger.log(`Syncing ${spaIds.length} favorites for customer ${customerId}`);
-
     const results: Favorite[] = [];
 
     for (const spaId of spaIds) {
@@ -89,12 +79,11 @@ export class FavoritesService {
           const saved = await this.favoritesRepository.save(favorite);
           results.push(saved);
         }
-      } catch (error) {
-        this.logger.warn(`Failed to sync spa ${spaId} for customer ${customerId}:`, error);
+      } catch {
+        // Skip failed syncs silently
       }
     }
 
-    this.logger.log(`Successfully synced ${results.length} new favorites for customer ${customerId}`);
     return results;
   }
 

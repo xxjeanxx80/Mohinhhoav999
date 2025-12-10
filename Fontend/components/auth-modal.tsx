@@ -32,8 +32,8 @@ export function AuthModal({ open, onOpenChange, redirectAfterLogin = true }: Aut
     const result = await login(loginForm)
     if (result.success) {
       toast({
-        title: "Đăng nhập thành công",
-        description: `Chào mừng bạn trở lại!`,
+        title: "Login successful",
+        description: `Welcome back!`,
       })
       onOpenChange(false)
       
@@ -51,10 +51,11 @@ export function AuthModal({ open, onOpenChange, redirectAfterLogin = true }: Aut
       router.refresh()
     } else {
       toast({
-        title: "Đăng nhập thất bại",
-        description: result.error || "Email hoặc mật khẩu không đúng",
+        title: "Login failed",
+        description: result.error || "Email or password is incorrect",
         variant: "destructive",
       })
+      // Don't refresh on login failure - keep user on login page
     }
   }
 
@@ -63,10 +64,10 @@ export function AuthModal({ open, onOpenChange, redirectAfterLogin = true }: Aut
     const result = await register(registerForm)
     if (result.success) {
       toast({
-        title: "Đăng ký thành công",
+        title: "Registration successful",
         description: registerForm.role === "OWNER" 
-          ? "Vui lòng đăng ký spa và chờ admin phê duyệt" 
-          : "Chào mừng bạn đến với BeautyHub!",
+          ? "Please register your spa and wait for admin approval" 
+          : "Welcome to BeautyHub!",
       })
       onOpenChange(false)
       
@@ -82,10 +83,11 @@ export function AuthModal({ open, onOpenChange, redirectAfterLogin = true }: Aut
       router.refresh()
     } else {
       toast({
-        title: "Đăng ký thất bại",
-        description: result.error || "Có lỗi xảy ra khi đăng ký",
+        title: "Registration failed",
+        description: result.error || "An error occurred during registration",
         variant: "destructive",
       })
+      // Don't refresh on registration failure - keep user on registration page
     }
   }
 

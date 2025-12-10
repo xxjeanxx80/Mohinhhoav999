@@ -15,6 +15,9 @@ export class Campaign {
   @Column({ name: 'discount_percent', type: 'numeric', precision: 5, scale: 2, default: 0 })
   discountPercent: number;
 
+  @Column({ name: 'spa_id', type: 'int', nullable: true })
+  spaId?: number | null;
+
   @ManyToOne(() => Spa, { nullable: true })
   @JoinColumn({ name: 'spa_id' })
   spa?: Spa | null;

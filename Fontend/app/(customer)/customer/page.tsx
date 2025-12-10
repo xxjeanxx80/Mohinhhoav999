@@ -12,7 +12,7 @@ import { useMemo } from "react"
 
 export default function CustomerDashboard() {
   const { user } = useUser()
-  const { loyalty, loading: loyaltyLoading } = useLoyalty(user?.id)
+  const { loyalty, loading: loyaltyLoading } = useLoyalty(user?.id ? Number(user.id) : undefined)
   const { bookings, loading: bookingsLoading } = useBookings()
   const { favorites, loading: favoritesLoading } = useFavorites()
 
@@ -38,8 +38,8 @@ export default function CustomerDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Xin chào, {user?.name}! 👋</h1>
-        <p className="mt-2 text-slate-600">Quản lý đặt lịch của bạn và khám phá các dịch vụ spa mới</p>
+        <h1 className="text-3xl font-bold text-slate-900">Hello, {user?.name}! 👋</h1>
+        <p className="mt-2 text-slate-600">Manage your bookings and discover new spa services</p>
       </div>
 
       {/* Loyalty Card */}
@@ -50,16 +50,16 @@ export default function CustomerDashboard() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Trophy className="w-6 h-6" />
-                  <h3 className="text-xl font-bold">Hạng thành viên</h3>
+                  <h3 className="text-xl font-bold">Member Rank</h3>
                 </div>
                 <p className="text-3xl font-bold mb-1">
-                  {loyalty.rank === "BRONZE" && "🥉 Đồng"}
-                  {loyalty.rank === "SILVER" && "🥈 Bạc"}
-                  {loyalty.rank === "GOLD" && "🥇 Vàng"}
-                  {loyalty.rank === "PLATINUM" && "💎 Bạch Kim"}
+                  {loyalty.rank === "BRONZE" && "🥉 Bronze"}
+                  {loyalty.rank === "SILVER" && "🥈 Silver"}
+                  {loyalty.rank === "GOLD" && "🥇 Gold"}
+                  {loyalty.rank === "PLATINUM" && "💎 Platinum"}
                 </p>
                 <p className="text-white/90 text-sm">
-                  {loyalty.points || 0} điểm tích lũy
+                  {loyalty.points || 0} accumulated points
                 </p>
               </div>
               <Award className="w-16 h-16 opacity-20" />
@@ -85,10 +85,10 @@ export default function CustomerDashboard() {
               />
             </div>
             <p className="text-xs text-white/80 mt-2">
-              {loyalty.rank === "BRONZE" && "Còn " + (100 - (loyalty.points || 0)) + " điểm để lên Bạc"}
-              {loyalty.rank === "SILVER" && "Còn " + (200 - (loyalty.points || 0)) + " điểm để lên Vàng"}
-              {loyalty.rank === "GOLD" && "Còn " + (300 - (loyalty.points || 0)) + " điểm để lên Bạch Kim"}
-              {loyalty.rank === "PLATINUM" && "Bạn đã đạt hạng cao nhất! 🎉"}
+              {loyalty.rank === "BRONZE" && (100 - (loyalty.points || 0)) + " points to Silver"}
+              {loyalty.rank === "SILVER" && (200 - (loyalty.points || 0)) + " points to Gold"}
+              {loyalty.rank === "GOLD" && (300 - (loyalty.points || 0)) + " points to Platinum"}
+              {loyalty.rank === "PLATINUM" && "You've reached the highest rank! 🎉"}
             </p>
           </CardContent>
         </Card>
@@ -99,7 +99,7 @@ export default function CustomerDashboard() {
         <Card className="border-0 shadow-sm hover:shadow-md transition">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">Đặt lịch sắp tới</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Upcoming Bookings</CardTitle>
               <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-red-600" />
               </div>
@@ -115,10 +115,10 @@ export default function CustomerDashboard() {
                 <p className="text-3xl font-bold text-slate-900">{upcomingBookings.length}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   {upcomingBookings.length === 0 
-                    ? "Không có đặt lịch sắp tới"
+                    ? "No upcoming bookings"
                     : upcomingBookings.length === 1 
-                      ? "1 đặt lịch sắp tới"
-                      : `${upcomingBookings.length} đặt lịch sắp tới`}
+                      ? "1 upcoming booking"
+                      : `${upcomingBookings.length} upcoming bookings`}
                 </p>
               </>
             )}
@@ -128,7 +128,7 @@ export default function CustomerDashboard() {
         <Card className="border-0 shadow-sm hover:shadow-md transition">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">Dịch vụ hoàn thành</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Completed Services</CardTitle>
               <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
                 <Ticket className="w-6 h-6 text-green-600" />
               </div>
@@ -144,10 +144,10 @@ export default function CustomerDashboard() {
                 <p className="text-3xl font-bold text-slate-900">{completedServices.length}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   {completedServices.length === 0
-                    ? "Dịch vụ đã hoàn thành"
+                    ? "Completed services"
                     : completedServices.length === 1
-                      ? "1 dịch vụ đã hoàn thành"
-                      : `${completedServices.length} dịch vụ đã hoàn thành`}
+                      ? "1 completed service"
+                      : `${completedServices.length} completed services`}
                 </p>
               </>
             )}
@@ -157,7 +157,7 @@ export default function CustomerDashboard() {
         <Card className="border-0 shadow-sm hover:shadow-md transition">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-600">Spa yêu thích</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Favorite Spas</CardTitle>
               <div className="h-12 w-12 rounded-lg bg-pink-100 flex items-center justify-center">
                 <Heart className="w-6 h-6 text-pink-600" />
               </div>
@@ -173,10 +173,10 @@ export default function CustomerDashboard() {
                 <p className="text-3xl font-bold text-slate-900">{favorites.length}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   {favorites.length === 0
-                    ? "Spa đã lưu"
+                    ? "Saved spas"
                     : favorites.length === 1
-                      ? "1 spa đã lưu"
-                      : `${favorites.length} spa đã lưu`}
+                      ? "1 saved spa"
+                      : `${favorites.length} saved spas`}
                 </p>
               </>
             )}
@@ -188,15 +188,15 @@ export default function CustomerDashboard() {
       {!bookingsLoading && bookings.length === 0 && (
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Bạn chưa có đặt lịch nào</CardTitle>
+            <CardTitle>You don't have any bookings yet</CardTitle>
             <CardDescription>
-              Vô số spa với dịch vụ chuyên nghiệp và trải nghiệm hấp dẫn đang chờ bạn khám phá
+              Countless spas with professional services and exciting experiences are waiting for you to explore
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/spas">
               <Button className="bg-amber-500 hover:bg-amber-600">
-                Khám phá ngay
+                Explore Now
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -210,12 +210,12 @@ export default function CustomerDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Đặt lịch gần đây</CardTitle>
-                <CardDescription>Các đặt lịch gần đây của bạn</CardDescription>
+                <CardTitle>Recent Bookings</CardTitle>
+                <CardDescription>Your recent bookings</CardDescription>
               </div>
               <Link href="/customer/bookings">
                 <Button variant="outline" size="sm">
-                  Xem tất cả
+                  View All
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -232,7 +232,7 @@ export default function CustomerDashboard() {
                     <p className="font-semibold text-slate-900">{booking.spa?.name || 'N/A'}</p>
                     <p className="text-sm text-slate-600 mt-1">{booking.service?.name || 'N/A'}</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleString('vi-VN') : 'N/A'}
+                      {booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleString('en-US') : 'N/A'}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -242,10 +242,10 @@ export default function CustomerDashboard() {
                       booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {booking.status === 'COMPLETED' ? 'Hoàn thành' :
-                       booking.status === 'CONFIRMED' ? 'Đã xác nhận' :
-                       booking.status === 'PENDING' ? 'Chờ xác nhận' :
-                       'Đã hủy'}
+                      {booking.status === 'COMPLETED' ? 'Completed' :
+                       booking.status === 'CONFIRMED' ? 'Confirmed' :
+                       booking.status === 'PENDING' ? 'Pending' :
+                       'Cancelled'}
                     </span>
                   </div>
                 </div>

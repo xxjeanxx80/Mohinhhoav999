@@ -26,8 +26,8 @@ export default function AdminSettings() {
     } catch (error: any) {
       console.error("Failed to fetch settings:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải system settings",
+        title: "Error",
+        description: "Failed to load system settings",
         variant: "destructive",
       })
     } finally {
@@ -44,14 +44,14 @@ export default function AdminSettings() {
     try {
       await adminAPI.updateSetting(key, { value })
       toast({
-        title: "Thành công",
-        description: "Đã cập nhật setting",
+        title: "Success",
+        description: "Setting updated successfully",
       })
       await fetchSettings()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Cập nhật setting thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update setting",
         variant: "destructive",
       })
     } finally {
@@ -62,8 +62,8 @@ export default function AdminSettings() {
   const handleCreate = async () => {
     if (!newSetting.key.trim() || !newSetting.value.trim()) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập đầy đủ key và value",
+        title: "Error",
+        description: "Please enter both key and value",
         variant: "destructive",
       })
       return
@@ -72,16 +72,16 @@ export default function AdminSettings() {
     try {
       await adminAPI.createSetting(newSetting)
       toast({
-        title: "Thành công",
-        description: "Đã tạo setting mới",
+        title: "Success",
+        description: "Setting created successfully",
       })
       setNewSetting({ key: "", value: "", description: "" })
       setShowForm(false)
       await fetchSettings()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Tạo setting thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create setting",
         variant: "destructive",
       })
     }
@@ -91,14 +91,14 @@ export default function AdminSettings() {
     try {
       await adminAPI.deleteSetting(key)
       toast({
-        title: "Thành công",
-        description: "Đã xóa setting",
+        title: "Success",
+        description: "Setting deleted successfully",
       })
       await fetchSettings()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Xóa setting thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete setting",
         variant: "destructive",
       })
     }
@@ -109,7 +109,7 @@ export default function AdminSettings() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -119,15 +119,15 @@ export default function AdminSettings() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Cài đặt hệ thống</h1>
-          <p className="mt-2 text-slate-600">Quản lý các thiết lập cấu hình hệ thống</p>
+          <h1 className="text-3xl font-bold text-slate-900">System Settings</h1>
+          <p className="mt-2 text-slate-600">Manage system configuration settings</p>
         </div>
         <Button
           className="bg-red-600 hover:bg-red-700"
           onClick={() => setShowForm(!showForm)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Thêm Setting
+          Add Setting
         </Button>
       </div>
 
@@ -135,8 +135,8 @@ export default function AdminSettings() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Thêm Setting mới</CardTitle>
-            <CardDescription>Tạo một cấu hình hệ thống mới</CardDescription>
+            <CardTitle>Add New Setting</CardTitle>
+            <CardDescription>Create a new system configuration</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -147,7 +147,7 @@ export default function AdminSettings() {
                     id="key"
                     value={newSetting.key}
                     onChange={(e) => setNewSetting({ ...newSetting, key: e.target.value })}
-                    placeholder="VD: app_name"
+                    placeholder="E.g.: app_name"
                   />
                 </div>
                 <div className="space-y-2">
@@ -156,27 +156,27 @@ export default function AdminSettings() {
                     id="value"
                     value={newSetting.value}
                     onChange={(e) => setNewSetting({ ...newSetting, value: e.target.value })}
-                    placeholder="VD: Beauty Hub"
+                    placeholder="E.g.: Beauty Hub"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Mô tả (tuỳ chọn)</Label>
+                <Label htmlFor="description">Description (optional)</Label>
                 <Input
                   id="description"
                   value={newSetting.description}
                   onChange={(e) => setNewSetting({ ...newSetting, description: e.target.value })}
-                  placeholder="Mô tả cho setting này..."
+                  placeholder="Description for this setting..."
                 />
               </div>
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button onClick={handleCreate}>
-                  Tạo Setting
+                  Create Setting
                 </Button>
               </div>
             </div>
@@ -189,13 +189,13 @@ export default function AdminSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-red-600" />
-            Tất cả Settings
+            All Settings
           </CardTitle>
           <CardDescription>{settings.length} setting(s)</CardDescription>
         </CardHeader>
         <CardContent>
           {settings.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">Chưa có setting nào</p>
+            <p className="text-center text-slate-500 py-8">No settings yet</p>
           ) : (
             <div className="space-y-4">
               {settings.map((setting) => (
@@ -233,7 +233,7 @@ export default function AdminSettings() {
                         disabled={saving === setting.key}
                       >
                         <Save className="h-4 w-4 mr-1" />
-                        {saving === setting.key ? "Đang lưu..." : "Lưu"}
+                        {saving === setting.key ? "Saving..." : "Save"}
                       </Button>
                       <Button
                         size="sm"

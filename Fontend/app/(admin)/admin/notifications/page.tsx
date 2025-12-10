@@ -24,7 +24,7 @@ export default function AdminNotifications() {
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({
-    channel: "EMAIL",
+    channel: "PUSH",
     userId: "",
     message: "",
   })
@@ -39,8 +39,8 @@ export default function AdminNotifications() {
     } catch (error: any) {
       console.error("Failed to fetch notifications:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách thông báo",
+        title: "Error",
+        description: "Failed to load notifications",
         variant: "destructive",
       })
     } finally {
@@ -52,8 +52,8 @@ export default function AdminNotifications() {
     e.preventDefault()
     if (!form.message.trim()) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập nội dung thông báo",
+        title: "Error",
+        description: "Please enter notification content",
         variant: "destructive",
       })
       return
@@ -67,16 +67,16 @@ export default function AdminNotifications() {
         message: form.message,
       })
       toast({
-        title: "Thành công",
-        description: "Đã gửi thông báo",
+        title: "Success",
+        description: "Notification sent successfully",
       })
-      setForm({ channel: "EMAIL", userId: "", message: "" })
+      setForm({ channel: "PUSH", userId: "", message: "" })
       setShowForm(false)
       await fetchNotifications()
     } catch (error: any) {
-      const message = error.response?.data?.message || "Không thể gửi thông báo"
+      const message = error.response?.data?.message || "Failed to send notification"
       toast({
-        title: "Lỗi",
+        title: "Error",
         description: message,
         variant: "destructive",
       })
@@ -110,9 +110,9 @@ export default function AdminNotifications() {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      SENT: { label: "Đã gửi", className: "bg-green-100 text-green-800" },
-      QUEUED: { label: "Chờ gửi", className: "bg-yellow-100 text-yellow-800" },
-      FAILED: { label: "Thất bại", className: "bg-red-100 text-red-800" },
+      SENT: { label: "Sent", className: "bg-green-100 text-green-800" },
+      QUEUED: { label: "Queued", className: "bg-yellow-100 text-yellow-800" },
+      FAILED: { label: "Failed", className: "bg-red-100 text-red-800" },
     }
     const badge = badges[status] || { label: status, className: "bg-gray-100 text-gray-800" }
     return <Badge className={badge.className}>{badge.label}</Badge>
@@ -127,7 +127,7 @@ export default function AdminNotifications() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -137,15 +137,15 @@ export default function AdminNotifications() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Quản lý Thông báo</h1>
-          <p className="mt-2 text-slate-600">Gửi và quản lý thông báo đến người dùng</p>
+          <h1 className="text-3xl font-bold text-slate-900">Notification Management</h1>
+          <p className="mt-2 text-slate-600">Send and manage notifications to users</p>
         </div>
         <Button
           className="bg-red-600 hover:bg-red-700"
           onClick={() => setShowForm(!showForm)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Gửi Thông báo
+          Send Notification
         </Button>
       </div>
 
@@ -155,14 +155,14 @@ export default function AdminNotifications() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Send className="h-5 w-5" />
-              Gửi Thông báo mới
+              Send New Notification
             </CardTitle>
-            <CardDescription>Gửi thông báo đến một người dùng cụ thể hoặc tất cả</CardDescription>
+            <CardDescription>Send notification to a specific user or all users</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="channel">Kênh *</Label>
+                <Label htmlFor="channel">Channel *</Label>
                 <Select
                   value={form.channel}
                   onValueChange={(value) => setForm({ ...form, channel: value })}
@@ -171,31 +171,29 @@ export default function AdminNotifications() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EMAIL">Email</SelectItem>
-                    <SelectItem value="SMS">SMS</SelectItem>
                     <SelectItem value="PUSH">Push Notification</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="userId">User ID (tùy chọn - để trống để gửi đến tất cả)</Label>
+                <Label htmlFor="userId">User ID (optional - leave empty to send to all)</Label>
                 <Input
                   id="userId"
                   type="number"
                   value={form.userId}
                   onChange={(e) => setForm({ ...form, userId: e.target.value })}
-                  placeholder="VD: 1, 2, 3..."
+                  placeholder="E.g.: 1, 2, 3..."
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Nội dung *</Label>
+                <Label htmlFor="message">Content *</Label>
                 <Textarea
                   id="message"
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Nhập nội dung thông báo..."
+                  placeholder="Enter notification content..."
                   rows={5}
                   required
                 />
@@ -204,12 +202,12 @@ export default function AdminNotifications() {
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => {
                   setShowForm(false)
-                  setForm({ channel: "EMAIL", userId: "", message: "" })
+                  setForm({ channel: "PUSH", userId: "", message: "" })
                 }}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={submitting} className="bg-red-600 hover:bg-red-700">
-                  {submitting ? "Đang gửi..." : "Gửi Thông báo"}
+                  {submitting ? "Sending..." : "Send Notification"}
                 </Button>
               </div>
             </form>
@@ -222,15 +220,15 @@ export default function AdminNotifications() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Tất cả Thông báo
+            All Notifications
           </CardTitle>
-          <CardDescription>{notifications.length} thông báo</CardDescription>
+          <CardDescription>{notifications.length} notifications</CardDescription>
         </CardHeader>
         <CardContent>
           {notifications.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <Bell className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-              <p>Chưa có thông báo nào</p>
+              <p>No notifications yet</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -246,15 +244,15 @@ export default function AdminNotifications() {
                       {getStatusBadge(notification.status)}
                     </div>
                     <span className="text-xs text-slate-500">
-                      {new Date(notification.createdAt).toLocaleString("vi-VN")}
+                      {new Date(notification.createdAt).toLocaleString("en-US")}
                     </span>
                   </div>
                   <p className="text-sm text-slate-900 mb-2">
-                    {notification.payload?.message || "Không có nội dung"}
+                    {notification.payload?.message || "No content"}
                   </p>
                   {notification.user && (
                     <p className="text-xs text-slate-500">
-                      Gửi đến: User #{notification.user.id || "N/A"}
+                      Sent to: User #{notification.user.id || "N/A"}
                     </p>
                   )}
                 </div>

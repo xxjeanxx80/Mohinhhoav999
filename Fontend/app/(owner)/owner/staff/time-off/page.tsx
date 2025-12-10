@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useOwnerStaffTimeOff } from "@/hooks/use-owner-staff-timeoff"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
-import { Calendar, Plus, Trash2, Clock } from "lucide-react"
+import { Calendar, Plus, Trash2, Clock, Pencil } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -19,9 +19,11 @@ import {
 } from "@/components/ui/select"
 
 export default function OwnerStaffTimeOff() {
-  const { timeOffs, loading, staff, requestTimeOff, refetch } = useOwnerStaffTimeOff()
+  const { timeOffs, loading, staff, requestTimeOff, updateTimeOff, deleteTimeOff, refetch } = useOwnerStaffTimeOff()
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [editingTimeOff, setEditingTimeOff] = useState<any>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const [form, setForm] = useState({
     staffId: "",
     startAt: "",
@@ -34,8 +36,8 @@ export default function OwnerStaffTimeOff() {
     e.preventDefault()
     if (!form.staffId) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn nhân viên",
+        title: "Error",
+        description: "Please select a staff member",
         variant: "destructive",
       })
       return
@@ -43,8 +45,8 @@ export default function OwnerStaffTimeOff() {
 
     if (!form.startAt || !form.endAt) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn ngày bắt đầu và kết thúc",
+        title: "Error",
+        description: "Please select start and end dates",
         variant: "destructive",
       })
       return
@@ -55,8 +57,8 @@ export default function OwnerStaffTimeOff() {
 
     if (endDate < startDate) {
       toast({
-        title: "Lỗi",
-        description: "Ngày kết thúc phải sau ngày bắt đầu",
+        title: "Error",
+        description: "End date must be after start date",
         variant: "destructive",
       })
       return
@@ -85,11 +87,66 @@ export default function OwnerStaffTimeOff() {
     const endDate = new Date(timeOff.endAt)
 
     if (endDate < now) {
-      return <Badge className="bg-gray-100 text-gray-800">Đã kết thúc</Badge>
+      return <Badge className="bg-gray-100 text-gray-800">Ended</Badge>
     } else if (startDate <= now && endDate >= now) {
-      return <Badge className="bg-yellow-100 text-yellow-800">Đang nghỉ</Badge>
+      return <Badge className="bg-yellow-100 text-yellow-800">On Leave</Badge>
     } else {
-      return <Badge className="bg-blue-100 text-blue-800">Sắp nghỉ</Badge>
+      return <Badge className="bg-blue-100 text-blue-800">Upcoming</Badge>
+    }
+  }
+
+  const handleEdit = (timeOff: any) => {
+    setEditingTimeOff({
+      id: timeOff.id,
+      staffId: timeOff.staff.id.toString(),
+      staffName: timeOff.staff.name,
+      startAt: new Date(timeOff.startAt).toISOString().slice(0, 16),
+      endAt: new Date(timeOff.endAt).toISOString().slice(0, 16),
+      reason: timeOff.reason || "",
+    })
+  }
+
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingTimeOff) return
+
+    const startDate = new Date(editingTimeOff.startAt)
+    const endDate = new Date(editingTimeOff.endAt)
+
+    if (endDate < startDate) {
+      toast({
+        title: "Error",
+        description: "End date must be after start date",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await updateTimeOff(editingTimeOff.id, {
+        startAt: new Date(editingTimeOff.startAt).toISOString(),
+        endAt: new Date(editingTimeOff.endAt).toISOString(),
+        reason: editingTimeOff.reason || undefined,
+      })
+      setEditingTimeOff(null)
+      refetch()
+    } catch (error) {
+      // Error already handled in hook
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (timeOffId: number) => {
+    setDeletingId(timeOffId)
+    try {
+      await deleteTimeOff(timeOffId)
+      refetch()
+    } catch (error) {
+      // Error already handled in hook
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -98,7 +155,7 @@ export default function OwnerStaffTimeOff() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -108,15 +165,15 @@ export default function OwnerStaffTimeOff() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Quản lý Nghỉ phép</h1>
-          <p className="mt-2 text-slate-600">Quản lý đơn nghỉ phép của nhân viên</p>
+          <h1 className="text-3xl font-bold text-slate-900">Time Off Management</h1>
+          <p className="mt-2 text-slate-600">Manage staff time off requests</p>
         </div>
         <Button
           className="bg-red-600 hover:bg-red-700"
           onClick={() => setShowForm(!showForm)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Ghi nhận nghỉ phép
+          Add Time Off
         </Button>
       </div>
 
@@ -124,16 +181,16 @@ export default function OwnerStaffTimeOff() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Ghi nhận Nghỉ phép</CardTitle>
-            <CardDescription>Điền thông tin để ghi nhận nghỉ phép cho nhân viên</CardDescription>
+            <CardTitle>Add Time Off</CardTitle>
+            <CardDescription>Fill in the information to record staff time off</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="staff">Nhân viên *</Label>
+                <Label htmlFor="staff">Staff Member *</Label>
                 <Select value={form.staffId} onValueChange={(value) => setForm({ ...form, staffId: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn nhân viên" />
+                    <SelectValue placeholder="Select staff member" />
                   </SelectTrigger>
                   <SelectContent>
                     {staff.map((member) => (
@@ -147,7 +204,7 @@ export default function OwnerStaffTimeOff() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startAt">Ngày bắt đầu *</Label>
+                  <Label htmlFor="startAt">Start Date *</Label>
                   <Input
                     id="startAt"
                     type="datetime-local"
@@ -157,7 +214,7 @@ export default function OwnerStaffTimeOff() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endAt">Ngày kết thúc *</Label>
+                  <Label htmlFor="endAt">End Date *</Label>
                   <Input
                     id="endAt"
                     type="datetime-local"
@@ -169,12 +226,12 @@ export default function OwnerStaffTimeOff() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason">Lý do (tùy chọn)</Label>
+                <Label htmlFor="reason">Reason (optional)</Label>
                 <Textarea
                   id="reason"
                   value={form.reason}
                   onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                  placeholder="VD: Nghỉ ốm, Nghỉ phép..."
+                  placeholder="E.g.: Sick leave, Vacation..."
                   rows={3}
                 />
               </div>
@@ -184,10 +241,66 @@ export default function OwnerStaffTimeOff() {
                   setShowForm(false)
                   setForm({ staffId: "", startAt: "", endAt: "", reason: "" })
                 }}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={submitting} className="bg-red-600 hover:bg-red-700">
-                  {submitting ? "Đang lưu..." : "Ghi nhận"}
+                  {submitting ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Form */}
+      {editingTimeOff && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Time Off</CardTitle>
+            <CardDescription>Update time off information for {editingTimeOff.staffName}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editStartAt">Start Date *</Label>
+                  <Input
+                    id="editStartAt"
+                    type="datetime-local"
+                    value={editingTimeOff.startAt}
+                    onChange={(e) => setEditingTimeOff({ ...editingTimeOff, startAt: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editEndAt">End Date *</Label>
+                  <Input
+                    id="editEndAt"
+                    type="datetime-local"
+                    value={editingTimeOff.endAt}
+                    onChange={(e) => setEditingTimeOff({ ...editingTimeOff, endAt: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="editReason">Reason (optional)</Label>
+                <Textarea
+                  id="editReason"
+                  value={editingTimeOff.reason}
+                  onChange={(e) => setEditingTimeOff({ ...editingTimeOff, reason: e.target.value })}
+                  placeholder="E.g.: Sick leave, Vacation..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setEditingTimeOff(null)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting} className="bg-red-600 hover:bg-red-700">
+                  {submitting ? "Saving..." : "Update"}
                 </Button>
               </div>
             </form>
@@ -200,27 +313,28 @@ export default function OwnerStaffTimeOff() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Danh sách Nghỉ phép
+            Time Off List
           </CardTitle>
-          <CardDescription>{timeOffs.length} bản ghi nghỉ phép</CardDescription>
+          <CardDescription>{timeOffs.length} time off records</CardDescription>
         </CardHeader>
         <CardContent>
           {timeOffs.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <Clock className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-              <p>Chưa có bản ghi nghỉ phép nào</p>
+              <p>No time off records yet</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Nhân viên</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ngày bắt đầu</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ngày kết thúc</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Thời gian</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Lý do</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Trạng thái</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Staff</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Start Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">End Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Duration</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Reason</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,7 +347,7 @@ export default function OwnerStaffTimeOff() {
                       <tr key={timeOff.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="px-4 py-3 text-sm font-medium text-slate-900">{timeOff.staff.name}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">
-                          {startDate.toLocaleString("vi-VN", {
+                          {startDate.toLocaleString("en-US", {
                             year: "numeric",
                             month: "2-digit",
                             day: "2-digit",
@@ -242,7 +356,7 @@ export default function OwnerStaffTimeOff() {
                           })}
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
-                          {endDate.toLocaleString("vi-VN", {
+                          {endDate.toLocaleString("en-US", {
                             year: "numeric",
                             month: "2-digit",
                             day: "2-digit",
@@ -251,13 +365,38 @@ export default function OwnerStaffTimeOff() {
                           })}
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
-                          {daysDiff} {daysDiff === 1 ? "ngày" : "ngày"}
+                          {daysDiff} {daysDiff === 1 ? "day" : "days"}
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {timeOff.reason || "—"}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           {getStatusBadge(timeOff)}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(timeOff)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(timeOff.id)}
+                              disabled={deletingId === timeOff.id}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              {deletingId === timeOff.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     )

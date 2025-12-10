@@ -14,7 +14,7 @@ export class CreateCouponDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsPositive()
+  @Min(0)
   maxRedemptions?: number;
 
   @ApiProperty({ required: false })

@@ -9,6 +9,9 @@ export class Coupon {
   @Column({ type: 'varchar', length: 100, unique: true })
   code: string;
 
+  @Column({ name: 'spa_id', type: 'int', nullable: true })
+  spaId?: number | null;
+
   @ManyToOne(() => Spa, { eager: true, nullable: true })
   @JoinColumn({ name: 'spa_id' })
   spa?: Spa | null;

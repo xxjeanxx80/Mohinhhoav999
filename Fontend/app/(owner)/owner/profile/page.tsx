@@ -5,19 +5,26 @@ import type React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Camera } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useToast } from "@/hooks/use-toast"
 import { usersAPI } from "@/lib/api-service"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function OwnerProfile() {
+  const router = useRouter()
   const { user, loading: userLoading, refetch } = useUser()
   const { toast } = useToast()
+  const { logout } = useAuth()
   const [updating, setUpdating] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -90,7 +97,7 @@ export default function OwnerProfile() {
 
     try {
       setUpdating(true)
-      const response = await usersAPI.update(user.id, {
+      const response = await usersAPI.update(Number(user.id), {
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
@@ -153,7 +160,7 @@ export default function OwnerProfile() {
 
     try {
       setChangingPassword(true)
-      await usersAPI.changePassword(user.id, {
+      await usersAPI.changePassword(Number(user.id), {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       })
@@ -204,7 +211,7 @@ export default function OwnerProfile() {
 
     try {
       setUploadingAvatar(true)
-      await usersAPI.uploadAvatar(user.id, file)
+      await usersAPI.uploadAvatar(Number(user.id), file)
       
       toast({
         title: "Success",
@@ -231,6 +238,33 @@ export default function OwnerProfile() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone! All spas, bookings and related data will be deleted.")) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await usersAPI.deleteAccount()
+      toast({
+        title: "Success",
+        description: "Account deleted successfully",
+      })
+      logout()
+      router.push("/signin")
+    } catch (error: any) {
+      console.error("Failed to delete account:", error)
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to delete account",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
     }
   }
 
@@ -474,7 +508,7 @@ export default function OwnerProfile() {
                   }
                   try {
                     setSavingBank(true)
-                    await usersAPI.update(user.id, {
+                    await usersAPI.update(Number(user.id), {
                       bankName: bankData.bankName,
                       bankAccountNumber: bankData.bankAccountNumber,
                       bankAccountHolder: bankData.bankAccountHolder,
@@ -509,11 +543,51 @@ export default function OwnerProfile() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-slate-600">Irreversible actions. Please be careful.</p>
-              <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-100 bg-transparent">
+              <Button 
+                variant="outline" 
+                className="border-red-300 text-red-600 hover:bg-red-100 bg-transparent"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
                 Delete Account
               </Button>
             </CardContent>
           </Card>
+
+          {/* Delete Account Dialog */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. All your data will be permanently deleted.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="text-sm text-slate-600 mb-2">Data to be deleted includes:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                  <li>All spas you own</li>
+                  <li>All services and staff of your spas</li>
+                  <li>All bookings of your spas and your own</li>
+                  <li>All feedbacks and reviews</li>
+                  <li>Payouts and payment information</li>
+                  <li>All other related data</li>
+                </ul>
+                <p className="text-sm font-semibold text-red-600 mt-4">Are you sure you want to delete your account?</p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete Account"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

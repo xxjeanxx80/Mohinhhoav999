@@ -24,10 +24,13 @@ interface Booking {
     name: string
   } | null
   scheduledAt: string
+  requestedScheduledAt?: string | null
   status: string
   totalPrice: number
   finalPrice: number
   couponCode?: string | null
+  rescheduleCount?: number
+  feedbacks?: any[]
   createdAt: string
 }
 

@@ -6,7 +6,6 @@ import { MainHeader } from "@/components/main-header"
 import { Heart, Calendar, Ticket, User } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
-import { useLanguage } from "@/contexts/language-context"
 
 export default function CustomerLayout({
   children,
@@ -15,13 +14,12 @@ export default function CustomerLayout({
 }) {
   useRoleRedirect()
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const { t } = useLanguage()
 
   const menuItems = [
-    { label: t.accountInfo, icon: User, href: "/customer/account" },
-    { label: t.yourBookings, icon: Calendar, href: "/customer/bookings" },
-    { label: t.vouchers, icon: Ticket, href: "/customer/vouchers" },
-    { label: t.favorites, icon: Heart, href: "/customer/favorites" },
+    { label: "Account Information", icon: User, href: "/customer/account" },
+    { label: "Your Bookings", icon: Calendar, href: "/customer/bookings" },
+    { label: "Vouchers", icon: Ticket, href: "/customer/vouchers" },
+    { label: "Favorites", icon: Heart, href: "/customer/favorites" },
   ]
 
   return (

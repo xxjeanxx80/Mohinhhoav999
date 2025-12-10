@@ -8,6 +8,7 @@ import { UpdateShiftDto } from './dto/update-shift.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RequestTimeOffDto } from './dto/request-time-off.dto';
+import { UpdateTimeOffDto } from './dto/update-time-off.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffShift } from './entities/staff-shift.entity';
 import { StaffShiftDay } from './entities/staff-shift-day.entity';
@@ -136,6 +137,45 @@ export class StaffService {
     await this.timeOffRepository.save(timeOff);
 
     return new ApiResponseDto({ success: true, message: 'Time off recorded.', data: timeOff });
+  }
+
+  async updateTimeOff(timeOffId: number, dto: UpdateTimeOffDto) {
+    const timeOff = await this.timeOffRepository.findOne({ 
+      where: { id: timeOffId },
+      relations: ['staff'],
+    });
+    
+    if (!timeOff) {
+      throw new NotFoundException('Time off record not found.');
+    }
+
+    if (dto.startAt) {
+      timeOff.startAt = new Date(dto.startAt);
+    }
+    if (dto.endAt) {
+      timeOff.endAt = new Date(dto.endAt);
+    }
+    if (dto.reason !== undefined) {
+      timeOff.reason = dto.reason ?? null;
+    }
+
+    await this.timeOffRepository.save(timeOff);
+
+    return new ApiResponseDto({ success: true, message: 'Time off updated.', data: timeOff });
+  }
+
+  async deleteTimeOff(timeOffId: number) {
+    const timeOff = await this.timeOffRepository.findOne({ 
+      where: { id: timeOffId },
+    });
+    
+    if (!timeOff) {
+      throw new NotFoundException('Time off record not found.');
+    }
+
+    await this.timeOffRepository.remove(timeOff);
+
+    return new ApiResponseDto({ success: true, message: 'Time off deleted.' });
   }
 
   async getSkills(staffId: number) {

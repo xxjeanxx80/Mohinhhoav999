@@ -16,14 +16,14 @@ interface HomepageImage {
 }
 
 const homepageImages: HomepageImage[] = [
-  { tag: "homepage_card_1", label: "Card 1 - Khám phá ưu đãi", description: "Ảnh cho card 'Khám phá các ưu đãi đặc biệt'" },
-  { tag: "homepage_card_2", label: "Card 2 - Đặt lịch hẹn", description: "Ảnh cho card 'Đặt lịch hẹn trực tuyến'" },
-  { tag: "homepage_service_1", label: "Dịch vụ 1 - Chăm sóc da", description: "Icon cho dịch vụ 'Chăm sóc da'" },
-  { tag: "homepage_service_2", label: "Dịch vụ 2 - Làm móng", description: "Icon cho dịch vụ 'Làm móng'" },
-  { tag: "homepage_service_3", label: "Dịch vụ 3 - Ngâm chân", description: "Icon cho dịch vụ 'Ngâm chân'" },
-  { tag: "homepage_service_4", label: "Dịch vụ 4 - Trị liệu", description: "Icon cho dịch vụ 'Trị liệu'" },
-  { tag: "homepage_service_5", label: "Dịch vụ 5 - Massage Trị Liệu", description: "Icon cho dịch vụ 'Massage Trị Liệu'" },
-  { tag: "homepage_service_6", label: "Dịch vụ 6 - Massage Thư Giãn", description: "Icon cho dịch vụ 'Massage Thư Giãn'" },
+  { tag: "homepage_card_1", label: "Card 1 - Discover Offers", description: "Image for 'Discover special offers' card" },
+  { tag: "homepage_card_2", label: "Card 2 - Book Appointment", description: "Image for 'Book online appointment' card" },
+  { tag: "homepage_service_1", label: "Service 1 - Skincare", description: "Icon for 'Skincare' service" },
+  { tag: "homepage_service_2", label: "Service 2 - Nail Care", description: "Icon for 'Nail Care' service" },
+  { tag: "homepage_service_3", label: "Service 3 - Foot Bath", description: "Icon for 'Foot Bath' service" },
+  { tag: "homepage_service_4", label: "Service 4 - Therapy", description: "Icon for 'Therapy' service" },
+  { tag: "homepage_service_5", label: "Service 5 - Therapeutic Massage", description: "Icon for 'Therapeutic Massage' service" },
+  { tag: "homepage_service_6", label: "Service 6 - Relaxation Massage", description: "Icon for 'Relaxation Massage' service" },
 ]
 
 export default function AdminHomepage() {
@@ -76,8 +76,8 @@ export default function AdminHomepage() {
     // Validate file
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Lỗi",
-        description: "Chỉ được upload file ảnh",
+        title: "Error",
+        description: "Only image files are allowed",
         variant: "destructive",
       })
       return
@@ -85,8 +85,8 @@ export default function AdminHomepage() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Lỗi",
-        description: "File không được vượt quá 5MB",
+        title: "Error",
+        description: "File size must not exceed 5MB",
         variant: "destructive",
       })
       return
@@ -104,16 +104,16 @@ export default function AdminHomepage() {
       await adminAPI.uploadHomepageImage(tag, formData)
       
       toast({
-        title: "Thành công",
-        description: "Đã upload ảnh thành công",
+        title: "Success",
+        description: "Image uploaded successfully",
       })
 
       // Refresh this image
       await fetchImage(tag)
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Upload ảnh thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to upload image",
         variant: "destructive",
       })
       setImages((prev) => ({
@@ -152,9 +152,9 @@ export default function AdminHomepage() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
           <Home className="h-8 w-8 text-red-600" />
-          Quản lý Homepage
+          Homepage Management
         </h1>
-        <p className="mt-2 text-slate-600">Chỉnh sửa ảnh hiển thị trên trang chủ</p>
+        <p className="mt-2 text-slate-600">Edit images displayed on the homepage</p>
       </div>
 
       {/* Card Images Section */}
@@ -162,9 +162,9 @@ export default function AdminHomepage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-red-600" />
-           Ảnh Cards (2 ảnh)
+           Card Images (2 images)
           </CardTitle>
-          <CardDescription>Ảnh hiển thị trên 2 cards ở phần đầu trang chủ</CardDescription>
+          <CardDescription>Images displayed on 2 cards at the top of homepage</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
@@ -179,7 +179,7 @@ export default function AdminHomepage() {
                   
                   <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
                     {imageState.loading ? (
-                      <div className="animate-pulse text-slate-400">Đang tải...</div>
+                      <div className="animate-pulse text-slate-400">Loading...</div>
                     ) : imageState.url ? (
                       <img 
                         src={imageState.url} 
@@ -189,7 +189,7 @@ export default function AdminHomepage() {
                     ) : (
                       <div className="text-slate-400 text-center">
                         <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Chưa có ảnh</p>
+                        <p className="text-sm">No image</p>
                       </div>
                     )}
                   </div>
@@ -215,12 +215,12 @@ export default function AdminHomepage() {
                     {imageState.uploading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang upload...
+                        Uploading...
                       </>
                     ) : (
                       <>
                         <Upload className="h-4 w-4 mr-2" />
-                        {imageState.url ? "Thay đổi ảnh" : "Upload ảnh"}
+                        {imageState.url ? "Change Image" : "Upload Image"}
                       </>
                     )}
                   </Button>
@@ -236,9 +236,9 @@ export default function AdminHomepage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-red-600" />
-            Ảnh Dịch vụ (6 ảnh)
+            Service Images (6 images)
           </CardTitle>
-          <CardDescription>Icon hiển thị cho 6 dịch vụ spa trên trang chủ</CardDescription>
+          <CardDescription>Icons displayed for 6 spa services on homepage</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
@@ -253,7 +253,7 @@ export default function AdminHomepage() {
                   
                   <div className="aspect-square bg-slate-100 rounded-full overflow-hidden flex items-center justify-center">
                     {imageState.loading ? (
-                      <div className="animate-pulse text-slate-400">Đang tải...</div>
+                      <div className="animate-pulse text-slate-400">Loading...</div>
                     ) : imageState.url ? (
                       <img 
                         src={imageState.url} 
@@ -263,7 +263,7 @@ export default function AdminHomepage() {
                     ) : (
                       <div className="text-slate-400 text-center">
                         <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Chưa có ảnh</p>
+                        <p className="text-sm">No image</p>
                       </div>
                     )}
                   </div>
@@ -290,12 +290,12 @@ export default function AdminHomepage() {
                     {imageState.uploading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang upload...
+                        Uploading...
                       </>
                     ) : (
                       <>
                         <Upload className="h-4 w-4 mr-2" />
-                        {imageState.url ? "Thay đổi" : "Upload"}
+                        {imageState.url ? "Change" : "Upload"}
                       </>
                     )}
                   </Button>

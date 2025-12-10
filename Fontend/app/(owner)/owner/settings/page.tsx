@@ -102,8 +102,8 @@ export default function OwnerSettings() {
                 await updateSpa(form)
                 await refetch()
                 toast({
-                  title: "Thành công",
-                  description: "Đã lưu thay đổi thông tin spa thành công!",
+                  title: "Success",
+                  description: "Spa information saved successfully!",
                 })
               } catch (error) {
                 // Error already handled in hook
@@ -112,7 +112,7 @@ export default function OwnerSettings() {
               }
             }}
           >
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </CardContent>
       </Card>
@@ -153,8 +153,8 @@ export default function OwnerSettings() {
 
                     if (!file.type.startsWith('image/')) {
                       toast({
-                        title: "Lỗi",
-                        description: "Chỉ chấp nhận file hình ảnh",
+                        title: "Error",
+                        description: "Only image files are allowed",
                         variant: "destructive",
                       })
                       return
@@ -164,8 +164,8 @@ export default function OwnerSettings() {
                       setUploadingAvatar(true)
                       await ownerAPI.uploadSpaAvatar(spa.id, file)
                       toast({
-                        title: "Thành công",
-                        description: "Đã cập nhật ảnh đại diện spa thành công",
+                        title: "Success",
+                        description: "Spa avatar updated successfully",
                       })
                       await fetchSpaImages()
                       await refetch()
@@ -173,8 +173,8 @@ export default function OwnerSettings() {
                       window.dispatchEvent(new CustomEvent('spa-media-updated', { detail: { spaId: spa.id } }))
                     } catch (error: any) {
                       toast({
-                        title: "Lỗi",
-                        description: error.response?.data?.message || "Không thể tải lên ảnh đại diện",
+                        title: "Error",
+                        description: error.response?.data?.message || "Failed to upload avatar",
                         variant: "destructive",
                       })
                     } finally {
@@ -191,7 +191,7 @@ export default function OwnerSettings() {
                   disabled={uploadingAvatar || loading}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  {uploadingAvatar ? "Đang tải..." : "Chọn ảnh đại diện"}
+                  {uploadingAvatar ? "Uploading..." : "Select Avatar"}
                 </Button>
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function OwnerSettings() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-red-100">
-                  <span className="text-slate-400">Chưa có ảnh nền</span>
+                  <span className="text-slate-400">No background image</span>
                 </div>
               )}
               <input
@@ -223,8 +223,8 @@ export default function OwnerSettings() {
 
                   if (!file.type.startsWith('image/')) {
                     toast({
-                      title: "Lỗi",
-                      description: "Chỉ chấp nhận file hình ảnh",
+                      title: "Error",
+                      description: "Only image files are allowed",
                       variant: "destructive",
                     })
                     return
@@ -233,18 +233,18 @@ export default function OwnerSettings() {
                   try {
                     setUploadingBackground(true)
                     await ownerAPI.uploadSpaBackground(spa.id, file)
-                      toast({
-                        title: "Thành công",
-                        description: "Đã cập nhật ảnh nền spa thành công",
-                      })
-                      await fetchSpaImages()
-                      await refetch()
-                      // Trigger refresh for all spa components
-                      window.dispatchEvent(new CustomEvent('spa-media-updated', { detail: { spaId: spa.id } }))
+                    toast({
+                      title: "Success",
+                      description: "Spa background updated successfully",
+                    })
+                    await fetchSpaImages()
+                    await refetch()
+                    // Trigger refresh for all spa components
+                    window.dispatchEvent(new CustomEvent('spa-media-updated', { detail: { spaId: spa.id } }))
                   } catch (error: any) {
                     toast({
-                      title: "Lỗi",
-                      description: error.response?.data?.message || "Không thể tải lên ảnh nền",
+                      title: "Error",
+                      description: error.response?.data?.message || "Failed to upload background",
                       variant: "destructive",
                     })
                   } finally {
@@ -262,10 +262,10 @@ export default function OwnerSettings() {
                 disabled={uploadingBackground || loading}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {uploadingBackground ? "Đang tải..." : "Chọn ảnh nền"}
+                {uploadingBackground ? "Uploading..." : "Select Background"}
               </Button>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Ảnh nền sẽ hiển thị với kích thước w-full h-full object-cover</p>
+            <p className="text-xs text-slate-500 mt-2">Background image will be displayed with full width and height, object-cover style</p>
           </div>
         </CardContent>
       </Card>

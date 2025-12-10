@@ -28,8 +28,8 @@ export function FeedbackModal({ isOpen, onClose, bookingId, spaId, spaName, onSu
   const handleSubmit = async () => {
     if (!comment.trim()) {
       toast({
-        title: "Thông báo",
-        description: "Vui lòng nhập nội dung đánh giá",
+        title: "Notice",
+        description: "Please enter your review",
         variant: "destructive",
       })
       return
@@ -37,38 +37,25 @@ export function FeedbackModal({ isOpen, onClose, bookingId, spaId, spaName, onSu
 
     setSubmitting(true)
     try {
-      console.log("📤 Submitting feedback:", { bookingId, rating, comment: comment.trim() })
-      
-      const response = await feedbacksAPI.create({
+      await feedbacksAPI.create({
         bookingId,
         rating,
         comment: comment.trim(),
       })
 
-      console.log("✅ Feedback submitted successfully:", response.data)
-
       toast({
-        title: "Thành công",
-        description: "Cảm ơn bạn đã đánh giá!",
+        title: "Success",
+        description: "Thank you for your feedback!",
       })
 
-      // Reset form
       setComment("")
       setRating(5)
-      
       onClose()
       onSuccess?.()
     } catch (error: any) {
-      console.error("❌ Submit feedback error:", error)
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-      })
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || error.message || "Gửi đánh giá thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to submit feedback",
         variant: "destructive",
       })
     } finally {

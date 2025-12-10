@@ -75,4 +75,25 @@ export class CampaignsService {
     await this.campaignRepository.delete(id);
     return new ApiResponseDto({ success: true, message: 'Campaign removed.' });
   }
+
+  async updateStatus(id: number, isActive: boolean) {
+    const campaign = await this.campaignRepository.findOne({ where: { id } });
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found.');
+    }
+
+    campaign.isActive = isActive;
+    const saved = await this.campaignRepository.save(campaign);
+    
+    const campaignWithRelations = await this.campaignRepository.findOne({
+      where: { id: saved.id },
+      relations: ['spa'],
+    });
+    
+    return new ApiResponseDto({ 
+      success: true, 
+      message: `Campaign ${isActive ? 'activated' : 'deactivated'} successfully.`, 
+      data: campaignWithRelations 
+    });
+  }
 }

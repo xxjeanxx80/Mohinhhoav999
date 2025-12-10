@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -16,7 +16,6 @@ import { Post } from '../posts/entities/post.entity';
 import { SpaService } from '../services/entities/service.entity';
 import { Staff } from '../staff/entities/staff.entity';
 import { MediaModule } from '../media/media.module';
-import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
@@ -36,7 +35,6 @@ import { AdminModule } from '../admin/admin.module';
       Staff,
     ]),
     MediaModule,
-    forwardRef(() => AdminModule),
   ],
   controllers: [UsersController],
   providers: [UsersService],

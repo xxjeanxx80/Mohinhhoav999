@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
@@ -15,8 +15,6 @@ import { GeocodingService } from './services/geocoding.service';
 
 @Injectable()
 export class SpasService {
-  private readonly logger = new Logger(SpasService.name);
-
   constructor(
     @InjectRepository(Spa) private readonly spaRepository: Repository<Spa>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
@@ -44,9 +42,7 @@ export class SpasService {
       if (geocodeResult) {
         spa.latitude = geocodeResult.latitude;
         spa.longitude = geocodeResult.longitude;
-        this.logger.log(`Auto-geocoded address "${dto.address}" -> (${spa.latitude}, ${spa.longitude})`);
       } else {
-        this.logger.warn(`Failed to geocode address: "${dto.address}"`);
         // Clear any existing coordinates if geocoding fails
         spa.latitude = null;
         spa.longitude = null;
@@ -93,12 +89,10 @@ export class SpasService {
   }
 
   async findByOwner(ownerId: number) {
-    this.logger.debug(`Finding spas for owner: ${ownerId}`);
     const spas = await this.spaRepository.find({ 
       where: { owner: { id: ownerId } },
       relations: ['owner']
     });
-    this.logger.debug(`Found ${spas.length} spa(s) for owner ${ownerId}`);
     return new ApiResponseDto({ success: true, message: 'Spas retrieved.', data: spas });
   }
 
@@ -138,9 +132,7 @@ export class SpasService {
         if (geocodeResult) {
           spa.latitude = geocodeResult.latitude;
           spa.longitude = geocodeResult.longitude;
-          this.logger.log(`Auto-geocoded address "${dto.address}" -> (${spa.latitude}, ${spa.longitude})`);
         } else {
-          this.logger.warn(`Failed to geocode address: "${dto.address}"`);
           // Clear coordinates if geocoding fails
           spa.latitude = null;
           spa.longitude = null;
@@ -208,8 +200,6 @@ export class SpasService {
       });
     }
 
-    this.logger.debug(`Searching for spas near (${lat}, ${lng}) within ${radius}km`);
-
     try {
       // Raw SQL query with Haversine formula - more reliable than QueryBuilder
       const spas = await this.spaRepository.query(
@@ -253,16 +243,6 @@ export class SpasService {
         [lat, lng, radius],
       );
 
-      this.logger.log(`Found ${spas.length} spa(s) within ${radius}km of (${lat}, ${lng})`);
-      
-      // Debug: Log coordinates of found spas
-      if (spas.length > 0) {
-        this.logger.debug('Spa coordinates found:');
-        spas.forEach((spa, index) => {
-          this.logger.debug(`${index + 1}. ${spa.name}: lat=${spa.latitude}, lng=${spa.longitude}, distance=${spa.distance_km}km`);
-        });
-      }
-
       return new ApiResponseDto({
         success: true,
         message: `Found ${spas.length} spa(s) within ${radius}km.`,
@@ -282,8 +262,6 @@ export class SpasService {
         })),
       });
     } catch (error) {
-      this.logger.error('Error finding nearby spas', error instanceof Error ? error.stack : String(error));
-      // Return error response with details
       return new ApiResponseDto({
         success: false,
         message: error instanceof Error ? error.message : 'Error finding nearby spas.',

@@ -73,8 +73,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
         clearAuthData()
-        // Redirect to homepage (where auth modal is)
-        window.location.href = "/"
+        // Only redirect to homepage if not on auth pages
+        const currentPath = window.location.pathname
+        if (!currentPath.startsWith("/signin") && !currentPath.startsWith("/signup")) {
+          // Redirect to homepage (where auth modal is)
+          window.location.href = "/"
+        }
       }
     }
     

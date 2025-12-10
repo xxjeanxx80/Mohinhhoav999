@@ -18,7 +18,7 @@ export interface TimeOff {
 }
 
 export function useOwnerStaffTimeOff() {
-  const { staff } = useOwnerStaff()
+  const { staff, refetch: refetchStaff } = useOwnerStaff()
   const [timeOffs, setTimeOffs] = useState<TimeOff[]>([])
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
@@ -51,8 +51,8 @@ export function useOwnerStaffTimeOff() {
     } catch (error: any) {
       console.error("Failed to fetch time offs:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách nghỉ phép",
+        title: "Error",
+        description: "Failed to load time off list",
         variant: "destructive",
       })
     } finally {
@@ -64,15 +64,53 @@ export function useOwnerStaffTimeOff() {
     try {
       await ownerAPI.requestTimeOff(staffId, data)
       toast({
-        title: "Thành công",
-        description: "Đã ghi nhận nghỉ phép",
+        title: "Success",
+        description: "Time off recorded successfully",
       })
       // Refetch staff to get updated time offs
-      await fetchTimeOffs()
+      await refetchStaff()
     } catch (error: any) {
-      const message = error.response?.data?.message || "Không thể ghi nhận nghỉ phép"
+      const message = error.response?.data?.message || "Failed to record time off"
       toast({
-        title: "Lỗi",
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      })
+      throw error
+    }
+  }
+
+  const updateTimeOff = async (timeOffId: number, data: { startAt?: string; endAt?: string; reason?: string }) => {
+    try {
+      await ownerAPI.updateTimeOff(timeOffId, data)
+      toast({
+        title: "Success",
+        description: "Time off updated successfully",
+      })
+      await refetchStaff()
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Failed to update time off"
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      })
+      throw error
+    }
+  }
+
+  const deleteTimeOff = async (timeOffId: number) => {
+    try {
+      await ownerAPI.deleteTimeOff(timeOffId)
+      toast({
+        title: "Success",
+        description: "Time off record deleted successfully",
+      })
+      await refetchStaff()
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Failed to delete time off"
+      toast({
+        title: "Error",
         description: message,
         variant: "destructive",
       })
@@ -91,7 +129,9 @@ export function useOwnerStaffTimeOff() {
     loading,
     staff,
     requestTimeOff,
-    refetch: fetchTimeOffs,
+    updateTimeOff,
+    deleteTimeOff,
+    refetch: refetchStaff,
   }
 }
 

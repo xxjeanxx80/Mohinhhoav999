@@ -63,6 +63,7 @@ export class BookingsController {
   @Auth(Role.OWNER)
   findOwnerBookings(@Req() req: Request) {
     const ownerId = (req.user as { id: number }).id;
+    this.logger.debug(`Owner bookings request received for user ID: ${ownerId}`);
     return this.bookingsService.findByOwner(ownerId);
   }
 

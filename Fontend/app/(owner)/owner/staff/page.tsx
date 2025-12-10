@@ -57,8 +57,8 @@ export default function OwnerStaff() {
   const handleAddSkill = async () => {
     if (!selectedStaff || !newSkillName.trim()) {
       toast({
-        title: "Thông báo",
-        description: "Vui lòng nhập tên kỹ năng",
+        title: "Notice",
+        description: "Please enter a skill name",
         variant: "destructive",
       })
       return
@@ -68,8 +68,8 @@ export default function OwnerStaff() {
       setAddingSkill(true)
       await ownerAPI.addStaffSkill(selectedStaff.id, { name: newSkillName.trim() })
       toast({
-        title: "Thành công",
-        description: "Đã thêm kỹ năng mới",
+        title: "Success",
+        description: "Skill added successfully",
       })
       setNewSkillName("")
       await refetch() // Refresh staff data
@@ -80,8 +80,8 @@ export default function OwnerStaff() {
       }
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể thêm kỹ năng",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to add skill",
         variant: "destructive",
       })
     } finally {
@@ -95,8 +95,8 @@ export default function OwnerStaff() {
     try {
       await ownerAPI.removeStaffSkill(selectedStaff.id, skillId)
       toast({
-        title: "Thành công",
-        description: "Đã xóa kỹ năng",
+        title: "Success",
+        description: "Skill removed successfully",
       })
       await refetch()
       // Update selected staff with new data
@@ -106,8 +106,8 @@ export default function OwnerStaff() {
       }
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể xóa kỹ năng",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to remove skill",
         variant: "destructive",
       })
     }
@@ -217,16 +217,16 @@ export default function OwnerStaff() {
       <Dialog open={skillModalOpen} onOpenChange={setSkillModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Quản lý kỹ năng - {selectedStaff?.name}</DialogTitle>
+            <DialogTitle>Manage Skills - {selectedStaff?.name}</DialogTitle>
             <DialogDescription>
-              Thêm hoặc xóa kỹ năng cho nhân viên này
+              Add or remove skills for this staff member
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {/* Current Skills */}
             <div className="space-y-2">
-              <Label>Kỹ năng hiện tại</Label>
+              <Label>Current Skills</Label>
               <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-md bg-slate-50">
                 {selectedStaff?.skills && selectedStaff.skills.length > 0 ? (
                   selectedStaff.skills.map((skill) => (
@@ -245,18 +245,18 @@ export default function OwnerStaff() {
                     </Badge>
                   ))
                 ) : (
-                  <span className="text-sm text-slate-400">Chưa có kỹ năng nào</span>
+                  <span className="text-sm text-slate-400">No skills yet</span>
                 )}
               </div>
             </div>
 
             {/* Add New Skill */}
             <div className="space-y-2">
-              <Label htmlFor="skillName">Thêm kỹ năng mới</Label>
+              <Label htmlFor="skillName">Add New Skill</Label>
               <div className="flex gap-2">
                 <Input
                   id="skillName"
-                  placeholder="Ví dụ: Massage, Nail Art..."
+                  placeholder="E.g.: Massage, Nail Art..."
                   value={newSkillName}
                   onChange={(e) => setNewSkillName(e.target.value)}
                   onKeyPress={(e) => {
@@ -278,7 +278,7 @@ export default function OwnerStaff() {
 
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseSkillModal}>
-              Đóng
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

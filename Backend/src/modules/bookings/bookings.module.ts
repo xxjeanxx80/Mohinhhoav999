@@ -9,6 +9,7 @@ import { Loyalty } from '../users/entities/loyalty.entity';
 import { LoyaltyHistory } from '../users/entities/loyalty-history.entity';
 import { Payment } from '../payments/entities/payment.entity';
 import { SystemSettingsModule } from '../system-settings/system-settings.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
 import { Booking } from './entities/booking.entity';
@@ -17,6 +18,7 @@ import { Booking } from './entities/booking.entity';
   imports: [
     TypeOrmModule.forFeature([Booking, Spa, SpaService, User, Staff, Coupon, Loyalty, LoyaltyHistory, Payment]),
     SystemSettingsModule,
+    NotificationsModule,
   ],
   controllers: [BookingsController],
   providers: [BookingsService],

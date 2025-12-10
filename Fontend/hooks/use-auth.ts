@@ -72,33 +72,33 @@ export function useAuth() {
       }
       
       if (!isAxiosError(err)) {
-        const message = "Đăng nhập thất bại"
+        const message = "Login failed"
         setError(message)
         return { success: false, error: message }
       }
       
-      // Xử lý network error
+      // Handle network error
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        const message = "Không thể kết nối đến server. Vui lòng kiểm tra backend có đang chạy không."
+        const message = "Cannot connect to server. Please check if the backend is running."
         setError(message)
         return { success: false, error: message }
       }
       
-      // Xử lý validation errors
+      // Handle validation errors
       if (err.response?.status === 400) {
-        const validationErrors = err.response?.data?.message || "Dữ liệu không hợp lệ"
+        const validationErrors = err.response?.data?.message || "Invalid data"
         setError(validationErrors)
         return { success: false, error: validationErrors }
       }
       
-      // Xử lý unauthorized
+      // Handle unauthorized
       if (err.response?.status === 401) {
-        const message = err.response?.data?.message || "Email hoặc mật khẩu không đúng"
+        const message = err.response?.data?.message || "Email or password is incorrect"
         setError(message)
         return { success: false, error: message }
       }
       
-      const message = err.response?.data?.message || "Đăng nhập thất bại"
+      const message = err.response?.data?.message || "Login failed"
       setError(message)
       return { success: false, error: message }
     } finally {
@@ -110,7 +110,7 @@ export function useAuth() {
     setLoading(true)
     setError(null)
     try {
-      // Backend không nhận 'name', chỉ nhận email, password, role
+      // Backend doesn't receive 'name', only email, password, role
       const registerPayload = {
         email: payload.email,
         password: payload.password,
@@ -144,33 +144,33 @@ export function useAuth() {
       }
       
       if (!isAxiosError(err)) {
-        const message = "Đăng ký thất bại"
+        const message = "Registration failed"
         setError(message)
         return { success: false, error: message }
       }
       
-      // Xử lý network error
+      // Handle network error
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        const message = "Không thể kết nối đến server. Vui lòng kiểm tra backend có đang chạy không."
+        const message = "Cannot connect to server. Please check if the backend is running."
         setError(message)
         return { success: false, error: message }
       }
       
-      // Xử lý conflict (email đã tồn tại)
+      // Handle conflict (email already exists)
       if (err.response?.status === 409) {
-        const message = err.response?.data?.message || "Email này đã được đăng ký"
+        const message = err.response?.data?.message || "This email is already registered"
         setError(message)
         return { success: false, error: message }
       }
       
-      // Xử lý validation errors
+      // Handle validation errors
       if (err.response?.status === 400) {
-        const validationErrors = err.response?.data?.message || "Dữ liệu không hợp lệ"
+        const validationErrors = err.response?.data?.message || "Invalid data"
         setError(validationErrors)
         return { success: false, error: validationErrors }
       }
       
-      const message = err.response?.data?.message || "Đăng ký thất bại"
+      const message = err.response?.data?.message || "Registration failed"
       setError(message)
       return { success: false, error: message }
     } finally {
@@ -183,5 +183,36 @@ export function useAuth() {
     clearAuthData()
   }, [])
 
-  return { login, register, logout, loading, error }
+  const forgotPassword = useCallback(async (email: string) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await api.post<ApiResponse<undefined>>("/auth/forgot-password", { email })
+      return { success: true, message: response.data.message }
+    } catch (err: unknown) {
+      const isAxiosError = (error: unknown): error is { code?: string; message?: string; response?: { status?: number; data?: { message?: string } } } => {
+        return typeof error === 'object' && error !== null
+      }
+      
+      if (!isAxiosError(err)) {
+        const message = "Cannot send password reset email"
+        setError(message)
+        return { success: false, error: message }
+      }
+      
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        const message = "Cannot connect to server"
+        setError(message)
+        return { success: false, error: message }
+      }
+      
+      const message = err.response?.data?.message || "Cannot send password reset email"
+      setError(message)
+      return { success: false, error: message }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return { login, register, logout, forgotPassword, loading, error }
 }

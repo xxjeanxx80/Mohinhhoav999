@@ -5,7 +5,6 @@ import { Auth } from '../../common/decorators/auth.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ApproveSpaDto } from '../spas/dto/approve-spa.dto';
 import { AdminService } from './admin.service';
-import { UpdateCampaignStatusDto } from './dto/update-campaign-status.dto';
 
 @ApiBearerAuth('Authorization')
 @Controller('admin')
@@ -17,7 +16,7 @@ export class AdminController {
   async getMetrics(@Req() req: Request) {
     const admin = req.user as { id: number } | undefined;
     if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'VIEW_METRICS');
+    // Removed audit logging
     }
     return this.adminService.getMetrics();
   }
@@ -33,39 +32,16 @@ export class AdminController {
     if (!admin) {
       throw new ForbiddenException('Authentication context is missing.');
     }
-    return this.adminService.approveSpa(id, dto, admin.id);
+    return this.adminService.approveSpa(id, dto);
   }
 
-  @Patch('campaigns/:id/status')
-  @Auth(Role.ADMIN)
-  updateCampaignStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateCampaignStatusDto,
-    @Req() req: Request,
-  ) {
-    const admin = req.user as { id: number } | undefined;
-    if (!admin) {
-      throw new ForbiddenException('Authentication context is missing.');
-    }
-    return this.adminService.updateCampaignStatus(id, dto, admin.id);
-  }
-
-  @Get('logs')
-  @Auth(Role.ADMIN)
-  async getLogs(@Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'VIEW_LOGS');
-    }
-    return this.adminService.getLogs();
-  }
-
+  
   @Get('reports')
   @Auth(Role.ADMIN)
   async getReports(@Req() req: Request) {
     const admin = req.user as { id: number } | undefined;
     if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'VIEW_REPORTS');
+    // Removed audit logging
     }
     return this.adminService.getReports();
   }
@@ -75,7 +51,7 @@ export class AdminController {
   async getOwners(@Req() req: Request) {
     const admin = req.user as { id: number } | undefined;
     if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'VIEW_OWNERS');
+    // Removed audit logging
     }
     return this.adminService.getOwners();
   }
@@ -85,7 +61,7 @@ export class AdminController {
   async getAllPayouts(@Req() req: Request) {
     const admin = req.user as { id: number } | undefined;
     if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'VIEW_PAYOUTS');
+    // Removed audit logging
     }
     return this.adminService.getAllPayouts();
   }

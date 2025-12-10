@@ -10,8 +10,6 @@ import { useUserState } from "@/hooks/use-user-state"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/brand/logo"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { useLanguage } from "@/contexts/language-context"
 
 interface MainHeaderProps {
   showAuthButtons?: boolean
@@ -23,14 +21,13 @@ export function MainHeader({ showAuthButtons = true, currentPath }: MainHeaderPr
   const { user, loading: userLoading, clearUser } = useUserState()
   const { logout } = useAuth()
   const { toast } = useToast()
-  const { t, isHydrated } = useLanguage()
 
   const handleLogout = () => {
     logout()
     clearUser()
     toast({
-      title: t.loggedOut,
-      description: t.loggedOutSuccess,
+      title: "Logged Out",
+      description: "You have successfully logged out",
     })
     router.push("/")
     router.refresh()
@@ -61,17 +58,17 @@ export function MainHeader({ showAuthButtons = true, currentPath }: MainHeaderPr
           <div className="flex items-center gap-4">
             {/* Navigation Menu */}
             <div className="hidden md:flex items-center gap-6 border-r border-slate-200 pr-4">
-              <Link href="/" className={getActiveLinkClass("/")} suppressHydrationWarning>
-                {t.home}
+              <Link href="/" className={getActiveLinkClass("/")}>
+                Home
               </Link>
-              <Link href="/spas" className={getActiveLinkClass("/spas")} suppressHydrationWarning>
-                {t.services}
+              <Link href="/spas" className={getActiveLinkClass("/spas")}>
+                Services
               </Link>
-              <Link href="/blog" className={getActiveLinkClass("/blog")} suppressHydrationWarning>
-                {t.blog}
+              <Link href="/blog" className={getActiveLinkClass("/blog")}>
+                Blog
               </Link>
-              <Link href="/about" className={getActiveLinkClass("/about")} suppressHydrationWarning>
-                {t.about}
+              <Link href="/about" className={getActiveLinkClass("/about")}>
+                About
               </Link>
             </div>
 
@@ -88,25 +85,23 @@ export function MainHeader({ showAuthButtons = true, currentPath }: MainHeaderPr
                         <UserAvatar userId={user.id} userName={user.name} size="sm" />
                         <span className="hidden sm:inline text-sm text-slate-600">{user.name}</span>
                       </button>
-                      <Button variant="ghost" size="sm" onClick={handleLogout} suppressHydrationWarning>
-                        {t.logout}
+                      <Button variant="ghost" size="sm" onClick={handleLogout}>
+                        Logout
                       </Button>
                     </div>
                   </>
                 ) : showAuthButtons ? (
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" onClick={() => router.push("/signin")} suppressHydrationWarning>
-                      {t.login}
+                    <Button variant="ghost" onClick={() => router.push("/signin")}>
+                      Login
                     </Button>
-                    <Button className="bg-red-600 hover:bg-red-700" onClick={() => router.push("/signup")} suppressHydrationWarning>
-                      {t.signup}
+                    <Button className="bg-red-600 hover:bg-red-700" onClick={() => router.push("/signup")}>
+                      Sign Up
                     </Button>
                   </div>
                 ) : null}
               </>
             )}
-            {/* Only show language switcher for customer/public pages */}
-            {(!user || user.role === "CUSTOMER") && <LanguageSwitcher />}
           </div>
         </div>
       </div>

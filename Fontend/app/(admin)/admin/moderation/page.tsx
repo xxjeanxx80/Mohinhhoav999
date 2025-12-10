@@ -29,8 +29,8 @@ export default function AdminModeration() {
     } catch (error: any) {
       console.error("Failed to fetch reports:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách báo cáo",
+        title: "Error",
+        description: "Failed to load reports",
         variant: "destructive",
       })
     } finally {
@@ -55,17 +55,17 @@ export default function AdminModeration() {
     
     setResolving(selectedReport.id)
     try {
-      await adminAPI.resolveReport(selectedReport.id, { notes: resolutionNotes || "Đã xử lý" })
+      await adminAPI.resolveReport(selectedReport.id, { notes: resolutionNotes || "Resolved" })
       toast({
-        title: "Thành công",
-        description: "Đã đánh dấu báo cáo đã xử lý",
+        title: "Success",
+        description: "Report marked as resolved",
       })
       await fetchReports()
       handleCloseResolveDialog()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Không thể xử lý báo cáo",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to resolve report",
         variant: "destructive",
       })
     } finally {
@@ -82,7 +82,7 @@ export default function AdminModeration() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -91,23 +91,23 @@ export default function AdminModeration() {
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kiểm duyệt & Báo cáo</h1>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">Xem xét và xử lý các báo cáo từ người dùng</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Moderation & Reports</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">Review and handle user reports</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-600" />
-            Báo cáo nội dung
+            Content Reports
           </CardTitle>
-          <CardDescription>{reports.length} báo cáo</CardDescription>
+          <CardDescription>{reports.length} reports</CardDescription>
         </CardHeader>
         <CardContent>
           {reports.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500 mb-2">✅ Không có báo cáo nào</p>
-              <p className="text-sm text-slate-400">Hệ thống đang hoạt động tốt!</p>
+              <p className="text-slate-500 mb-2">✅ No reports</p>
+              <p className="text-sm text-slate-400">System is running smoothly!</p>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -116,12 +116,12 @@ export default function AdminModeration() {
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">ID</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Người báo cáo</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Loại báo cáo</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">ID đối tượng</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Lý do</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Trạng thái</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Hành động</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Reporter</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Report Type</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Target ID</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Reason</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Status</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                 <tbody>
@@ -146,7 +146,7 @@ export default function AdminModeration() {
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm">
                         <Badge className={report.status === "OPEN" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
-                          {report.status === "OPEN" ? "Chờ xử lý" : "Đã xử lý"}
+                          {report.status === "OPEN" ? "Pending" : "Resolved"}
                         </Badge>
                         {report.status === "RESOLVED" && report.resolutionNotes && (
                           <div className="mt-1 text-xs text-slate-500 flex items-start gap-1 hidden sm:flex">
@@ -164,12 +164,12 @@ export default function AdminModeration() {
                             disabled={resolving === report.id}
                           >
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                            <span className="hidden sm:inline">{resolving === report.id ? "Đang xử lý..." : "Xử lý"}</span>
+                            <span className="hidden sm:inline">{resolving === report.id ? "Processing..." : "Resolve"}</span>
                           </Button>
                         ) : (
                           <span className="text-xs sm:text-sm text-green-600 flex items-center gap-1">
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span className="hidden sm:inline">Đã xử lý</span>
+                            <span className="hidden sm:inline">Resolved</span>
                           </span>
                         )}
                       </td>
@@ -187,55 +187,55 @@ export default function AdminModeration() {
       <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Xử lý báo cáo</DialogTitle>
+            <DialogTitle>Resolve Report</DialogTitle>
             <DialogDescription>
-              Nhập ghi chú về cách xử lý báo cáo này
+              Enter notes about how you handled this report
             </DialogDescription>
           </DialogHeader>
           
           {selectedReport && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Thông tin báo cáo</Label>
+                <Label className="text-sm font-medium">Report Information</Label>
                 <div className="rounded-lg border border-slate-200 p-3 space-y-2 bg-slate-50">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-slate-700">ID:</span>
                     <span className="text-sm text-slate-900">#{selectedReport.id}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-700">Người báo cáo:</span>
+                    <span className="text-sm font-medium text-slate-700">Reporter:</span>
                     <span className="text-sm text-slate-900">{selectedReport.reporter?.name || selectedReport.reporter?.email || `User #${selectedReport.reporterId}`}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-700">Loại:</span>
+                    <span className="text-sm font-medium text-slate-700">Type:</span>
                     <Badge className="bg-blue-100 text-blue-800">{selectedReport.targetType}</Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-700">Đối tượng:</span>
+                    <span className="text-sm font-medium text-slate-700">Target:</span>
                     <div>
                       <p className="text-sm font-medium text-slate-900">{selectedReport.targetName || "N/A"}</p>
                       <p className="text-xs text-slate-500">ID: #{selectedReport.targetId}</p>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-sm font-medium text-slate-700">Lý do:</span>
+                    <span className="text-sm font-medium text-slate-700">Reason:</span>
                     <p className="text-sm text-slate-900">{selectedReport.reason}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="resolution-notes">Ghi chú xử lý (Admin)</Label>
+                <Label htmlFor="resolution-notes">Resolution Notes (Admin)</Label>
                 <Textarea
                   id="resolution-notes"
-                  placeholder="Nhập ghi chú về cách bạn đã xử lý báo cáo này..."
+                  placeholder="Enter notes about how you resolved this report..."
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-slate-500">
-                  Ghi chú này sẽ được lưu lại trong hệ thống
+                  This note will be saved in the system
                 </p>
               </div>
             </div>
@@ -247,14 +247,14 @@ export default function AdminModeration() {
               onClick={handleCloseResolveDialog}
               disabled={resolving !== null}
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               className="bg-green-600 hover:bg-green-700"
               onClick={handleResolve}
               disabled={resolving !== null}
             >
-              {resolving !== null ? "Đang xử lý..." : "Xác nhận đã xử lý"}
+              {resolving !== null ? "Processing..." : "Confirm Resolved"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -135,15 +135,28 @@ export default function CustomerBookings() {
                     <p className="text-xs sm:text-sm text-slate-500 mb-1.5 sm:mb-2 flex items-center gap-1.5" suppressHydrationWarning>
                       <Calendar size={14} className="flex-shrink-0" /> {t.time}
                     </p>
-                    <p className="font-semibold text-sm sm:text-base text-slate-900 whitespace-nowrap">
-                      {new Date(booking.scheduledAt).toLocaleString(language === "VN" ? "vi-VN" : "en-US", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <div>
+                      <p className="font-semibold text-sm sm:text-base text-slate-900 whitespace-nowrap">
+                        {new Date(booking.scheduledAt).toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      {booking.requestedScheduledAt && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Yêu cầu đổi: {new Date(booking.requestedScheduledAt).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-slate-500 mb-1.5 sm:mb-2" suppressHydrationWarning>{t.status}</p>
@@ -155,7 +168,9 @@ export default function CustomerBookings() {
                             ? "bg-red-100 text-red-800"
                             : booking.status === "COMPLETED"
                               ? "bg-blue-100 text-blue-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              : booking.status === "RESCHEDULE_REQUESTED"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-yellow-100 text-yellow-800"
                       }`}
                       suppressHydrationWarning
                     >
@@ -165,7 +180,9 @@ export default function CustomerBookings() {
                           ? t.cancelled
                           : booking.status === "COMPLETED"
                             ? t.completed
-                            : t.pending}
+                            : booking.status === "RESCHEDULE_REQUESTED"
+                              ? "Đang chờ spa xác nhận đổi lịch"
+                              : t.pending}
                     </span>
                   </div>
                   <div className="flex flex-wrap justify-start md:justify-end gap-2 sm:gap-2 pt-2 md:pt-0">
@@ -210,18 +227,25 @@ export default function CustomerBookings() {
                         </Button>
                       </>
                     )}
-                    {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
+                    {(booking.status === "PENDING" || booking.status === "RESCHEDULE_REQUESTED") && (
                       <>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleReschedule(booking)}
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                          disabled={booking.status === "RESCHEDULE_REQUESTED" || (booking.rescheduleCount !== undefined && booking.rescheduleCount >= 1)}
                           suppressHydrationWarning
                         >
                           <CalendarClock size={14} className="mr-1.5" />
-                          <span className="hidden sm:inline">{t.reschedule}</span>
-                          <span className="sm:hidden">Đổi lịch</span>
+                          <span className="hidden sm:inline">
+                            {booking.status === "RESCHEDULE_REQUESTED" ? "Đang chờ spa xác nhận" : 
+                             (booking.rescheduleCount !== undefined && booking.rescheduleCount >= 1) ? "Đã đổi lịch 1 lần" : t.reschedule}
+                          </span>
+                          <span className="sm:hidden">
+                            {booking.status === "RESCHEDULE_REQUESTED" ? "Đang chờ..." : 
+                             (booking.rescheduleCount !== undefined && booking.rescheduleCount >= 1) ? "Đã đổi 1 lần" : "Đổi lịch"}
+                          </span>
                         </Button>
                         <Button
                           variant="outline"

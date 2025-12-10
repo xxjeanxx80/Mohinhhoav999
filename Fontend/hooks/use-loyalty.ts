@@ -17,13 +17,9 @@ export function useLoyalty(userId?: number) {
         setLoading(true)
         setError(null)
         const response = await usersAPI.getLoyaltyRank(userId)
-        console.log("Loyalty response:", response.data)
-        // Response format: { success: true, data: { rank: 'BRONZE', points: 70 } }
-        const loyaltyData = response.data?.data || response.data
-        setLoyalty(loyaltyData)
+        setLoyalty(response.data?.data || response.data)
       } catch (err: any) {
-        console.error("Failed to fetch loyalty:", err)
-        setError(err.response?.data?.message || "Không thể tải thông tin loyalty")
+        setError(err.response?.data?.message || "Failed to load loyalty info")
       } finally {
         setLoading(false)
       }

@@ -14,7 +14,14 @@ export function useOwnerPromotions() {
     setLoading(true)
     try {
       const res = await ownerAPI.getPromotions()
-      setPromotions(res.data?.data || res.data || [])
+      const allPromotions = res.data?.data || res.data || []
+      
+      // Filter out admin coupons (spaId: null/undefined) and show only spa-specific promotions
+      const spaPromotions = allPromotions.filter((promo: any) => {
+        return promo.spaId !== undefined && promo.spaId !== null
+      })
+      
+      setPromotions(spaPromotions)
       setError(null)
     } catch (e: any) {
       const message = e.response?.data?.message || "Failed to load promotions"

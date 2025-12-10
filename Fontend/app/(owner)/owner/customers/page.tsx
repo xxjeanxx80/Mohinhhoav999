@@ -24,7 +24,7 @@ const getLoyaltyColor = (rank?: string) => {
   }
 }
 
-// Tự động tính rank dựa trên điểm
+// Auto calculate rank based on points
 const calculateRank = (points: number): string => {
   if (points >= 300) return "PLATINUM"
   if (points >= 200) return "GOLD"
@@ -48,7 +48,7 @@ export default function OwnerCustomers() {
           <div className="flex items-start gap-3">
             <Star className="w-5 h-5 text-amber-500 fill-amber-500 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-slate-900 mb-2">Loyalty Rank System (Tự động theo điểm)</h3>
+              <h3 className="font-semibold text-slate-900 mb-2">Loyalty Rank System (Auto by points)</h3>
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Badge className="bg-orange-100 text-orange-800 border-orange-300 border">BRONZE</Badge>
@@ -93,7 +93,7 @@ export default function OwnerCustomers() {
                 {customers.length === 0 && !loading ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                      Chưa có khách hàng nào. Khách hàng sẽ xuất hiện khi họ đặt lịch.
+                      No customers yet. Customers will appear when they make a booking.
                     </td>
                   </tr>
                 ) : (

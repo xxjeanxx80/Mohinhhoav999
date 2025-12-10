@@ -19,14 +19,14 @@ export default function AdminApproveSpa() {
     try {
       const response = await adminAPI.getSpas()
       const allSpas = response.data?.data || []
-      // Chỉ hiển thị spa chưa được approve (is_approved: false)
+      // Only show unapproved spas (is_approved: false)
       const unapprovedSpas = allSpas.filter((spa: any) => spa.isApproved === false || spa.is_approved === false)
       setSpas(unapprovedSpas)
     } catch (error: any) {
       console.error("Failed to fetch spas:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách spa",
+        title: "Error",
+        description: "Failed to load spa list",
         variant: "destructive",
       })
     } finally {
@@ -43,14 +43,14 @@ export default function AdminApproveSpa() {
     try {
       await adminAPI.approveSpa(spaId, { isApproved: true })
       toast({
-        title: "Thành công",
-        description: "Đã phê duyệt spa",
+        title: "Success",
+        description: "Spa approved successfully",
       })
       await fetchSpas()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Phê duyệt spa thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to approve spa",
         variant: "destructive",
       })
     } finally {
@@ -63,14 +63,14 @@ export default function AdminApproveSpa() {
     try {
       await adminAPI.rejectSpa(spaId, { isApproved: false })
       toast({
-        title: "Thành công",
-        description: "Đã từ chối spa",
+        title: "Success",
+        description: "Spa rejected successfully",
       })
       await fetchSpas()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Từ chối spa thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to reject spa",
         variant: "destructive",
       })
     } finally {
@@ -83,7 +83,7 @@ export default function AdminApproveSpa() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -92,33 +92,33 @@ export default function AdminApproveSpa() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Quản lý Spa</h1>
-        <p className="mt-2 text-slate-600">Phê duyệt và quản lý các spa đã đăng ký</p>
+        <h1 className="text-3xl font-bold text-slate-900">Spa Management</h1>
+        <p className="mt-2 text-slate-600">Approve and manage registered spas</p>
       </div>
 
-      {/* Spa chờ phê duyệt */}
+      {/* Pending Spas */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-orange-600" />
-            Spa chờ phê duyệt
+            Pending Spas
           </CardTitle>
-          <CardDescription>{spas.length} spa đang chờ phê duyệt</CardDescription>
+          <CardDescription>{spas.length} spas pending approval</CardDescription>
         </CardHeader>
         <CardContent>
           {spas.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">Không có spa nào đang chờ phê duyệt</p>
+            <p className="text-center text-slate-500 py-8">No spas pending approval</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Tên Spa</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Chủ sở hữu</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Địa chỉ</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Liên hệ</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ngày tạo</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Hành động</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Spa Name</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Owner</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Address</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Contact</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Created At</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,10 +126,10 @@ export default function AdminApproveSpa() {
                     <tr key={spa.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">{spa.name}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{spa.owner?.name || "N/A"}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{spa.address || "Chưa có"}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{spa.address || "Not provided"}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{spa.phone || spa.email || "N/A"}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {new Date(spa.createdAt).toLocaleDateString("vi-VN")}
+                        {new Date(spa.createdAt).toLocaleDateString("en-US")}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex gap-2">
@@ -140,7 +140,7 @@ export default function AdminApproveSpa() {
                             disabled={processing === spa.id}
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
-                            {processing === spa.id ? "Đang xử lý..." : "Phê duyệt"}
+                            {processing === spa.id ? "Processing..." : "Approve"}
                           </Button>
                           <Button
                             size="sm"
@@ -150,7 +150,7 @@ export default function AdminApproveSpa() {
                             disabled={processing === spa.id}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
-                            Từ chối
+                            Reject
                           </Button>
                         </div>
                       </td>

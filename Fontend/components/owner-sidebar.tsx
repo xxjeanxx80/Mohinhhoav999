@@ -105,6 +105,7 @@ export function OwnerSidebar() {
   const { logout } = useAuth()
   const router = useRouter()
   const [hasSpa, setHasSpa] = useState(false)
+  const [spaApproved, setSpaApproved] = useState(false)
   
   // Track which groups are open (default: open if current path is in that group)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
@@ -121,13 +122,27 @@ export function OwnerSidebar() {
       try {
         const res = await ownerAPI.getMySpas()
         const spas = res.data?.data || res.data || []
-        setHasSpa(Array.isArray(spas) && spas.length > 0)
+        const hasSpaData = Array.isArray(spas) && spas.length > 0
+        setHasSpa(hasSpaData)
+        
+        // Check if spa is approved
+        if (hasSpaData && Array.isArray(spas)) {
+          const isApproved = spas.some((spa: any) => spa.isApproved === true)
+          setSpaApproved(isApproved)
+        } else {
+          setSpaApproved(false)
+        }
       } catch (error) {
         console.error("Failed to check spa:", error)
         setHasSpa(false)
+        setSpaApproved(false)
       }
     }
     checkSpa()
+    
+    // Refresh spa status every 5 seconds to catch admin approval
+    const interval = setInterval(checkSpa, 5000)
+    return () => clearInterval(interval)
   }, [pathname])
 
   // Update open groups when pathname changes
@@ -158,7 +173,8 @@ export function OwnerSidebar() {
 
   // Nếu đang ở trang register → CHỈ HIỆN Register Spa
   const isOnRegisterPage = pathname?.includes('/spa/register')
-  const showMenuGroups = !isOnRegisterPage && hasSpa
+  // Chỉ hiện menu groups nếu spa đã được admin xác nhận
+  const showMenuGroups = !isOnRegisterPage && hasSpa && spaApproved
 
   return (
     <aside className="hidden lg:block w-64 border-r border-slate-200 bg-white flex-shrink-0">
@@ -169,6 +185,14 @@ export function OwnerSidebar() {
       </div>
 
       <nav className="space-y-1 px-3 py-6">
+        {/* Pending Approval Notice */}
+        {hasSpa && !spaApproved && !isOnRegisterPage && (
+          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-3">
+            <p className="text-xs font-semibold text-amber-900 mb-1">⏳ Chờ xác nhận</p>
+            <p className="text-xs text-amber-700">Spa của bạn đang chờ admin xác nhận. Vui lòng quay lại sau.</p>
+          </div>
+        )}
+
         {/* Dashboard - Standalone */}
         {!isOnRegisterPage && (
           <Link
@@ -197,8 +221,8 @@ export function OwnerSidebar() {
           </Link>
         )}
 
-        {/* Register Spa - Show if no spa or on register page */}
-        {(!hasSpa || isOnRegisterPage) && (
+        {/* Register Spa - Show if no spa or on register page, hide if spa is approved */}
+        {(!hasSpa || isOnRegisterPage) && !spaApproved && (
           <Link
             href="/owner/spa/register"
             className={cn(

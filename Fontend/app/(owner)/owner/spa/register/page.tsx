@@ -36,7 +36,7 @@ export default function RegisterSpaPage() {
         const spas = res.data?.data || res.data || []
         if (Array.isArray(spas) && spas.length > 0) {
           setAlreadyHasSpa(true)
-          // Redirect về owner page (sẽ hiện màn chờ phê duyệt)
+          // Redirect to owner page (will show pending approval screen)
           setTimeout(() => {
             window.location.href = "/owner"
           }, 2000)
@@ -60,10 +60,26 @@ export default function RegisterSpaPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validate required fields
+    const missingFields: string[] = []
+    
     if (!formData.name.trim()) {
+      missingFields.push("Spa name")
+    }
+    if (!formData.address.trim()) {
+      missingFields.push("Address")
+    }
+    if (!formData.phone.trim()) {
+      missingFields.push("Phone number")
+    }
+    if (!formData.email.trim()) {
+      missingFields.push("Email")
+    }
+
+    if (missingFields.length > 0) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập tên spa",
+        title: "Please fill in all required fields",
+        description: `Missing: ${missingFields.join(", ")}`,
         variant: "destructive",
       })
       return
@@ -75,11 +91,11 @@ export default function RegisterSpaPage() {
       console.log("✅ Spa created:", response)
 
       toast({
-        title: "Thành công",
-        description: "Đã đăng ký spa thành công! Vui lòng chờ admin phê duyệt.",
+        title: "Success",
+        description: "Spa registered successfully! Please wait for admin approval.",
       })
 
-      // Force reload để layout check lại spa status
+      // Force reload to check spa status again
       setTimeout(() => {
         window.location.href = "/owner"
       }, 1500)
@@ -88,8 +104,8 @@ export default function RegisterSpaPage() {
       console.error("Error response:", error.response?.data)
       
       toast({
-        title: "Lỗi", 
-        description: error.response?.data?.message || "Đăng ký spa thất bại",
+        title: "Error", 
+        description: error.response?.data?.message || "Failed to register spa",
         variant: "destructive",
       })
       setLoading(false)
@@ -117,9 +133,9 @@ export default function RegisterSpaPage() {
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center">
               <AlertCircle className="h-8 w-8 text-amber-600" />
             </div>
-            <CardTitle>Spa đã được đăng ký</CardTitle>
+            <CardTitle>Spa Already Registered</CardTitle>
             <CardDescription>
-              Bạn đã đăng ký spa rồi. Đang chuyển hướng...
+              You have already registered a spa. Redirecting...
             </CardDescription>
           </CardHeader>
         </Card>
@@ -136,8 +152,8 @@ export default function RegisterSpaPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Đăng ký Spa mới</h1>
-          <p className="mt-2 text-slate-600">Điền thông tin để đăng ký spa của bạn</p>
+          <h1 className="text-3xl font-bold text-slate-900">Register New Spa</h1>
+          <p className="mt-2 text-slate-600">Fill in the information to register your spa</p>
         </div>
       </div>
 
@@ -145,54 +161,54 @@ export default function RegisterSpaPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-red-600" />
-            Thông tin Spa
+            Spa Information
           </CardTitle>
           <CardDescription>
-            Spa sẽ được gửi đến admin để phê duyệt sau khi đăng ký
+            Spa will be sent to admin for approval after registration
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Tên Spa */}
+            {/* Spa Name */}
             <div className="space-y-2">
               <Label htmlFor="name">
-                Tên Spa <span className="text-red-500">*</span>
+                Spa Name <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="VD: Beauty Spa & Wellness"
+                placeholder="E.g.: Beauty Spa & Wellness"
                 required
               />
             </div>
 
-            {/* Mô tả */}
+            {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Mô tả</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Mô tả về spa của bạn..."
+                placeholder="Describe your spa..."
                 rows={4}
               />
             </div>
 
-            {/* Địa chỉ */}
+            {/* Address */}
             <div className="space-y-2">
               <Label htmlFor="address" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                Địa chỉ
+                Address
               </Label>
               <Input
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="VD: 123 Nguyễn Huệ, Quận 1, TP.HCM"
+                placeholder="E.g.: 123 Main Street, District 1, City"
               />
             </div>
 
@@ -201,7 +217,7 @@ export default function RegisterSpaPage() {
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
-                  Số điện thoại
+                  Phone Number
                 </Label>
                 <Input
                   id="phone"
@@ -234,7 +250,7 @@ export default function RegisterSpaPage() {
               <div className="space-y-2">
                 <Label htmlFor="openingTime" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Giờ mở cửa
+                  Opening Time
                 </Label>
                 <Input
                   id="openingTime"
@@ -249,7 +265,7 @@ export default function RegisterSpaPage() {
               <div className="space-y-2">
                 <Label htmlFor="closingTime" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Giờ đóng cửa
+                  Closing Time
                 </Label>
                 <Input
                   id="closingTime"
@@ -264,11 +280,11 @@ export default function RegisterSpaPage() {
 
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">📝 Lưu ý</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">📝 Note</h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Spa sẽ được gửi đến admin để phê duyệt</li>
-                <li>• Sau khi được phê duyệt, spa sẽ hiển thị công khai</li>
-                <li>• Bạn có thể chỉnh sửa thông tin spa sau khi đăng ký</li>
+                <li>• Spa will be sent to admin for approval</li>
+                <li>• After approval, spa will be publicly visible</li>
+                <li>• You can edit spa information after registration</li>
               </ul>
             </div>
 
@@ -276,7 +292,7 @@ export default function RegisterSpaPage() {
             <div className="flex gap-4">
               <Link href="/owner">
                 <Button type="button" variant="outline">
-                  Hủy
+                  Cancel
                 </Button>
               </Link>
               <Button
@@ -284,7 +300,7 @@ export default function RegisterSpaPage() {
                 disabled={loading}
                 className="bg-red-600 hover:bg-red-700"
               >
-                {loading ? "Đang đăng ký..." : "Đăng ký Spa"}
+                {loading ? "Registering..." : "Register Spa"}
               </Button>
             </div>
           </form>

@@ -10,6 +10,9 @@ interface User {
   role: string
   phone?: string
   address?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bankAccountHolder?: string
 }
 
 export function useUser() {

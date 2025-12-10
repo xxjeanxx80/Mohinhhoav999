@@ -14,15 +14,8 @@ export function useOwnerBookings() {
   const fetchBookings = async () => {
     setLoading(true)
     try {
-      // Use /bookings/owner endpoint to get all bookings for owner's spa
-      const res = await fetch("http://localhost:3000/bookings/owner", {
-        headers: {
-          Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("access_token") : ""}`,
-        },
-      })
-      if (!res.ok) throw new Error("Failed to fetch")
-      const data = await res.json()
-      setBookings(data.data || [])
+      const response = await bookingsAPI.getOwnerBookings()
+      setBookings(response.data.data || [])
       setError(null)
     } catch (e: any) {
       const message = e.response?.data?.message || e.message || "Failed to fetch bookings"
@@ -38,14 +31,34 @@ export function useOwnerBookings() {
       setUpdating(id)
       await ownerAPI.updateBookingStatus(id, { status })
       toast({
-        title: "Thành công",
-        description: `Booking đã được ${status === "CONFIRMED" ? "chấp nhận" : status === "CANCELLED" ? "hủy" : status === "COMPLETED" ? "hoàn thành" : "cập nhật"}`,
+        title: "Success",
+        description: `Booking ${status === "CONFIRMED" ? "confirmed" : status === "CANCELLED" ? "cancelled" : status === "COMPLETED" ? "completed" : "updated"}`,
       })
       await fetchBookings()
     } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: error.response?.data?.message || "Cập nhật thất bại",
+        title: "Error",
+        description: error.response?.data?.message || "Update failed",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const respondToReschedule = async (id: number, approved: boolean) => {
+    try {
+      setUpdating(id)
+      await bookingsAPI.respondToReschedule(id, approved)
+      toast({
+        title: "Success",
+        description: approved ? "Reschedule approved" : "Reschedule rejected",
+      })
+      await fetchBookings()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to process reschedule",
         variant: "destructive",
       })
     } finally {
@@ -91,6 +104,7 @@ export function useOwnerBookings() {
     completeBooking,
     cancelBooking,
     rescheduleBooking,
+    respondToReschedule,
     refetch: fetchBookings,
   }
 }

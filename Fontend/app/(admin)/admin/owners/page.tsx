@@ -39,8 +39,8 @@ export default function AdminOwners() {
     } catch (error: any) {
       console.error("Failed to fetch owners:", error)
       toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách owner",
+        title: "Error",
+        description: "Failed to load owners",
         variant: "destructive",
       })
     } finally {
@@ -57,7 +57,7 @@ export default function AdminOwners() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -77,7 +77,7 @@ export default function AdminOwners() {
         </CardHeader>
         <CardContent>
           {owners.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">Chưa có owner nào</p>
+            <p className="text-center text-slate-500 py-8">No owners yet</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -99,7 +99,7 @@ export default function AdminOwners() {
                         <Badge variant="outline">{owner.spas} spa{owner.spas !== 1 ? 's' : ''}</Badge>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {new Date(owner.createdAt).toLocaleDateString("vi-VN")}
+                        {new Date(owner.createdAt).toLocaleDateString("en-US")}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <Badge className="bg-green-100 text-green-800">Active</Badge>

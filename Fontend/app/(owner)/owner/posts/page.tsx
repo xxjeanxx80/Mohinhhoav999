@@ -60,8 +60,8 @@ export default function OwnerPosts() {
 
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Lỗi",
-        description: "Chỉ được upload file ảnh",
+        title: "Error",
+        description: "Only image files are allowed",
         variant: "destructive",
       })
       return
@@ -69,8 +69,8 @@ export default function OwnerPosts() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Lỗi",
-        description: "File không được vượt quá 5MB",
+        title: "Error",
+        description: "File size must not exceed 5MB",
         variant: "destructive",
       })
       return
@@ -93,8 +93,8 @@ export default function OwnerPosts() {
     e.preventDefault()
     if (!form.title.trim() || !form.content.trim()) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng điền đầy đủ tiêu đề và nội dung",
+        title: "Error",
+        description: "Please fill in both title and content",
         variant: "destructive",
       })
       return
@@ -120,14 +120,14 @@ export default function OwnerPosts() {
         try {
           await ownerAPI.uploadMedia(imageFile, 'POST', postId)
           toast({
-            title: "Thành công",
-            description: "Đã tải lên ảnh cho bài viết",
+            title: "Success",
+            description: "Image uploaded successfully",
           })
         } catch (error: any) {
           console.error("Failed to upload image:", error)
           toast({
-            title: "Cảnh báo",
-            description: "Bài viết đã được lưu nhưng không thể tải lên ảnh",
+            title: "Warning",
+            description: "Post saved but failed to upload image",
             variant: "destructive",
           })
         } finally {
@@ -135,8 +135,8 @@ export default function OwnerPosts() {
         }
       } else if (imageFile && !postId) {
         toast({
-          title: "Cảnh báo",
-          description: "Không thể tải lên ảnh vì không tìm thấy ID bài viết",
+          title: "Warning",
+          description: "Cannot upload image because post ID not found",
           variant: "destructive",
         })
       }
@@ -151,7 +151,7 @@ export default function OwnerPosts() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+    if (!confirm("Are you sure you want to delete this post?")) {
       return
     }
 
@@ -177,7 +177,7 @@ export default function OwnerPosts() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -187,8 +187,8 @@ export default function OwnerPosts() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Quản lý Bài viết</h1>
-          <p className="mt-2 text-slate-600">Tạo và quản lý các bài viết/blog</p>
+          <h1 className="text-3xl font-bold text-slate-900">Posts Management</h1>
+          <p className="mt-2 text-slate-600">Create and manage blog posts</p>
         </div>
         <Button
           className="bg-red-600 hover:bg-red-700"
@@ -198,7 +198,7 @@ export default function OwnerPosts() {
           }}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Tạo Bài viết
+          Create Post
         </Button>
       </div>
 
@@ -206,38 +206,38 @@ export default function OwnerPosts() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>{editingId ? "Chỉnh sửa Bài viết" : "Tạo Bài viết mới"}</CardTitle>
+            <CardTitle>{editingId ? "Edit Post" : "Create New Post"}</CardTitle>
             <CardDescription>
-              {editingId ? "Cập nhật thông tin bài viết" : "Viết bài để chia sẻ với khách hàng"}
+              {editingId ? "Update post information" : "Write a post to share with customers"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Tiêu đề *</Label>
+                <Label htmlFor="title">Title *</Label>
                 <Input
                   id="title"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="VD: Cẩm nang chăm sóc da"
+                  placeholder="E.g.: Skincare Guide"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Nội dung *</Label>
+                <Label htmlFor="content">Content *</Label>
                 <Textarea
                   id="content"
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  placeholder="Viết nội dung bài viết..."
+                  placeholder="Write your post content..."
                   rows={10}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">Ảnh bài viết (hiển thị ở homepage)</Label>
+                <Label htmlFor="image">Post Image (displayed on homepage)</Label>
                 <div className="space-y-3">
                   {imagePreview ? (
                     <div className="relative">
@@ -257,7 +257,7 @@ export default function OwnerPosts() {
                   ) : (
                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
                       <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-                      <p className="text-sm text-slate-600 mb-2">Chọn ảnh để upload</p>
+                      <p className="text-sm text-slate-600 mb-2">Select an image to upload</p>
                       <Input
                         id="image"
                         type="file"
@@ -271,7 +271,7 @@ export default function OwnerPosts() {
                         size="sm"
                         onClick={() => document.getElementById('image')?.click()}
                       >
-                        Chọn ảnh
+                        Select Image
                       </Button>
                     </div>
                   )}
@@ -288,7 +288,7 @@ export default function OwnerPosts() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="isPublished">Trạng thái</Label>
+                <Label htmlFor="isPublished">Status</Label>
                 <Select
                   value={form.isPublished ? "true" : "false"}
                   onValueChange={(value) => setForm({ ...form, isPublished: value === "true" })}
@@ -297,18 +297,18 @@ export default function OwnerPosts() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">Công khai</SelectItem>
-                    <SelectItem value="false">Nháp</SelectItem>
+                    <SelectItem value="true">Published</SelectItem>
+                    <SelectItem value="false">Draft</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetForm}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={submitting || uploadingImage} className="bg-red-600 hover:bg-red-700">
-                  {submitting || uploadingImage ? "Đang lưu..." : editingId ? "Cập nhật" : "Tạo Bài viết"}
+                  {submitting || uploadingImage ? "Saving..." : editingId ? "Update" : "Create Post"}
                 </Button>
               </div>
             </form>
@@ -321,15 +321,15 @@ export default function OwnerPosts() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Tất cả Bài viết
+            All Posts
           </CardTitle>
-          <CardDescription>{posts.length} bài viết</CardDescription>
+          <CardDescription>{posts.length} posts</CardDescription>
         </CardHeader>
         <CardContent>
           {posts.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <FileText className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-              <p>Chưa có bài viết nào</p>
+              <p>No posts yet</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -346,21 +346,21 @@ export default function OwnerPosts() {
                           {post.isPublished ? (
                             <>
                               <Eye className="h-3 w-3 mr-1" />
-                              Công khai
+                              Published
                             </>
                           ) : (
                             <>
                               <EyeOff className="h-3 w-3 mr-1" />
-                              Nháp
+                              Draft
                             </>
                           )}
                         </Badge>
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2 mb-2">{post.content}</p>
                       <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <span>Tạo: {new Date(post.createdAt).toLocaleDateString("vi-VN")}</span>
+                        <span>Created: {new Date(post.createdAt).toLocaleDateString("en-US")}</span>
                         {post.updatedAt && (
-                          <span>Cập nhật: {new Date(post.updatedAt).toLocaleDateString("vi-VN")}</span>
+                          <span>Updated: {new Date(post.updatedAt).toLocaleDateString("en-US")}</span>
                         )}
                       </div>
                     </div>

@@ -8,6 +8,7 @@ import { UpdateShiftDto } from './dto/update-shift.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { RequestTimeOffDto } from './dto/request-time-off.dto';
+import { UpdateTimeOffDto } from './dto/update-time-off.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffService } from './staff.service';
 
@@ -84,6 +85,18 @@ export class StaffController {
   @Auth(Role.ADMIN, Role.OWNER)
   requestTimeOff(@Param('id', ParseIntPipe) id: number, @Body() dto: RequestTimeOffDto) {
     return this.staffService.requestTimeOff(id, dto);
+  }
+
+  @Patch('time-off/:timeOffId')
+  @Auth(Role.ADMIN, Role.OWNER)
+  updateTimeOff(@Param('timeOffId', ParseIntPipe) timeOffId: number, @Body() dto: UpdateTimeOffDto) {
+    return this.staffService.updateTimeOff(timeOffId, dto);
+  }
+
+  @Delete('time-off/:timeOffId')
+  @Auth(Role.ADMIN, Role.OWNER)
+  deleteTimeOff(@Param('timeOffId', ParseIntPipe) timeOffId: number) {
+    return this.staffService.deleteTimeOff(timeOffId);
   }
 
   @Get(':id/skills')

@@ -6,6 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Role } from '../../../common/enums/role.enum';
 import { Loyalty } from './loyalty.entity';
@@ -27,12 +28,6 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.CUSTOMER })
   role: Role;
-
-  @Column({ name: 'oauth_provider', type: 'varchar', length: 255, nullable: true })
-  oauthProvider: string | null;
-
-  @Column({ name: 'oauth_provider_id', type: 'varchar', length: 255, nullable: true })
-  oauthProviderId: string | null;
 
   @Column({ name: 'refresh_token_hash', type: 'varchar', length: 255, nullable: true })
   refreshTokenHash: string | null;
@@ -64,4 +59,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt?: Date;
 }

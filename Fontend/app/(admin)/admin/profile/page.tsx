@@ -90,7 +90,7 @@ export default function AdminProfile() {
 
     try {
       setUpdating(true)
-      const response = await usersAPI.update(user.id, {
+      const response = await usersAPI.update(Number(user.id), {
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
@@ -153,7 +153,7 @@ export default function AdminProfile() {
 
     try {
       setChangingPassword(true)
-      await usersAPI.changePassword(user.id, {
+      await usersAPI.changePassword(Number(user.id), {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       })
@@ -204,7 +204,7 @@ export default function AdminProfile() {
 
     try {
       setUploadingAvatar(true)
-      await usersAPI.uploadAvatar(user.id, file)
+      await usersAPI.uploadAvatar(Number(user.id), file)
       
       toast({
         title: "Success",
@@ -474,7 +474,7 @@ export default function AdminProfile() {
                   }
                   try {
                     setSavingBank(true)
-                    await usersAPI.update(user.id, {
+                    await usersAPI.update(Number(user.id), {
                       bankName: bankData.bankName,
                       bankAccountNumber: bankData.bankAccountNumber,
                       bankAccountHolder: bankData.bankAccountHolder,
@@ -502,19 +502,7 @@ export default function AdminProfile() {
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-0 shadow-sm mt-6 border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-slate-600">Irreversible actions. Please be careful.</p>
-              <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-100 bg-transparent">
-                Delete Account
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -23,8 +23,6 @@ import { Staff } from '../staff/entities/staff.entity';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor(
     @InjectRepository(User) private readonly usersRepo: Repository<User>,
     @InjectRepository(Loyalty) private readonly loyaltyRepo: Repository<Loyalty>,
@@ -59,7 +57,6 @@ export class UsersService {
       email,
       password: await this.hashPassword(dto.password),
       role: dto.role ?? Role.CUSTOMER,
-      oauthProvider: 'local',
     });
 
     const saved = await this.usersRepo.save(user);
@@ -157,82 +154,21 @@ export class UsersService {
       throw new NotFoundException('User not found.');
     }
 
-    this.logger.log(`Starting deletion process for user ${id} (${user.email})`);
+    // SOFT DELETE: Update all fields in one operation for security
+    const deletedEmail = `deleted_user_${id}_${Date.now()}@deleted.com`;
+    await this.usersRepo.update(id, {
+      deletedAt: new Date(),
+      email: deletedEmail,
+      password: null,
+      refreshTokenHash: null,
+      phone: null,
+      address: null,
+      bankName: null,
+      bankAccountNumber: null,
+      bankAccountHolder: null,
+    });
 
-    // 1. Find all spas owned by this user
-    const ownedSpas = await this.spaRepo.find({ where: { owner: { id } } });
-    const spaIds = ownedSpas.map(spa => spa.id);
-
-    if (spaIds.length > 0) {
-      this.logger.log(`Found ${spaIds.length} spa(s) owned by user ${id}`);
-
-      // 1.1. Delete payments related to bookings of these spas
-      const spaBookings = await this.bookingRepo.find({ where: { spa: { id: In(spaIds) } } });
-      const bookingIds = spaBookings.map(b => b.id);
-      if (bookingIds.length > 0) {
-        await this.paymentRepo.delete({ bookingId: In(bookingIds) });
-        this.logger.log(`Deleted ${bookingIds.length} payment(s) related to spa bookings`);
-      }
-
-      // 1.2. Delete feedbacks of spa bookings first (before deleting bookings)
-      // This avoids foreign key constraint issues
-      await this.feedbackRepo.delete({ spa: { id: In(spaIds) } });
-      this.logger.log(`Deleted feedbacks of spas`);
-
-      // 1.3. Delete bookings of spas
-      await this.bookingRepo.delete({ spa: { id: In(spaIds) } });
-      this.logger.log(`Deleted bookings of spas`);
-
-      // 1.4. Delete services of spas
-      await this.spaServiceRepo.delete({ spa: { id: In(spaIds) } });
-      this.logger.log(`Deleted services of spas`);
-
-      // 1.5. Delete staff of spas (staff skills, shifts, time offs will cascade delete)
-      await this.staffRepo.delete({ spa: { id: In(spaIds) } });
-      this.logger.log(`Deleted staff of spas`);
-
-      // 1.6. Delete posts of spas
-      await this.postRepo.delete({ spa: { id: In(spaIds) } });
-      this.logger.log(`Deleted posts of spas`);
-
-      // 1.7. Delete spas
-      await this.spaRepo.delete({ id: In(spaIds) });
-      this.logger.log(`Deleted ${spaIds.length} spa(s)`);
-    }
-
-    // 2. Delete bookings where user is customer
-    const userBookings = await this.bookingRepo.find({ where: { customer: { id } } });
-    const userBookingIds = userBookings.map(b => b.id);
-    if (userBookingIds.length > 0) {
-      // Delete payments related to user bookings
-      await this.paymentRepo.delete({ bookingId: In(userBookingIds) });
-      this.logger.log(`Deleted payments related to user bookings`);
-    }
-    await this.bookingRepo.delete({ customer: { id } });
-    this.logger.log(`Deleted bookings where user is customer`);
-
-    // 3. Delete feedbacks where user is customer (if any remain)
-    await this.feedbackRepo.delete({ customer: { id } });
-    this.logger.log(`Deleted feedbacks where user is customer`);
-
-    // 4. Delete payouts where user is owner
-    await this.payoutRepo.delete({ owner: { id } });
-    this.logger.log(`Deleted payouts where user is owner`);
-
-    // 5. Delete reports where user is reporter
-    await this.reportRepo.delete({ reporter: { id } });
-    this.logger.log(`Deleted reports where user is reporter`);
-
-    // 6. Delete notifications for user
-    await this.notificationRepo.delete({ user: { id } });
-    this.logger.log(`Deleted notifications for user`);
-
-    // 7. Favorites, Loyalty, LoyaltyHistory will be deleted by CASCADE
-    // 8. Finally delete the user
-    await this.usersRepo.delete(id);
-    this.logger.log(`User ${id} deleted successfully`);
-
-    return new ApiResponseDto({ success: true, message: 'User and all related data deleted successfully.' });
+    return new ApiResponseDto({ success: true, message: 'User soft deleted successfully. All business data preserved.' });
   }
 
   async addPoints(customerId: number, points: number, reason: string): Promise<ApiResponseDto<{ loyalty: Loyalty }>> {

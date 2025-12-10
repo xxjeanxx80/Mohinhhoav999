@@ -62,7 +62,6 @@ export class AuthService {
       email,
       password: hashedPassword,
       role: dto.role ?? Role.CUSTOMER,
-      oauthProvider: 'local',
     });
 
     user = await this.usersRepo.save(user);

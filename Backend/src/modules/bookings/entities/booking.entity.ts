@@ -17,7 +17,6 @@ import { Feedback } from '../../feedbacks/entities/feedback.entity';
 export enum BookingStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
-  RESCHEDULE_REQUESTED = 'RESCHEDULE_REQUESTED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }

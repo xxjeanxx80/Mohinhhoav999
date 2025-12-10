@@ -4,9 +4,12 @@ import axiosClient from "./axios-client"
 export const bookingsAPI = {
   create: (data: any) => axiosClient.post("/bookings", data),
   getAll: () => axiosClient.get("/bookings/me"),
+  getOwnerBookings: () => axiosClient.get("/bookings/owner"),
   getOne: (id: number) => axiosClient.get(`/bookings/${id}`),
   reschedule: (id: number, data: any) => axiosClient.patch(`/bookings/${id}/reschedule`, data),
   cancel: (id: number, data: any) => axiosClient.patch(`/bookings/${id}/cancel`, data),
+  respondToReschedule: (id: number, approved: boolean) => axiosClient.patch(`/bookings/${id}/reschedule/respond`, { approved }),
+  getAvailableStaff: (spaId: number, scheduledAt: string) => axiosClient.get(`/bookings/available-staff/${spaId}`, { params: { scheduledAt } }),
 }
 
 // Services API
@@ -45,6 +48,7 @@ export const feedbacksAPI = {
 export const notificationsAPI = {
   getMyNotifications: () => axiosClient.get("/notifications/me"),
   getBookingNotifications: () => axiosClient.get("/notifications/bookings"),
+  markAsRead: (notificationId: number) => axiosClient.patch(`/notifications/${notificationId}/read`),
 }
 
 // Customers API
@@ -121,6 +125,10 @@ export const ownerAPI = {
   // Staff Time Off
   requestTimeOff: (staffId: number, data: { startAt: string; endAt: string; reason?: string }) => 
     axiosClient.post(`/staff/${staffId}/time-off`, data),
+  updateTimeOff: (timeOffId: number, data: { startAt?: string; endAt?: string; reason?: string }) =>
+    axiosClient.patch(`/staff/time-off/${timeOffId}`, data),
+  deleteTimeOff: (timeOffId: number) =>
+    axiosClient.delete(`/staff/time-off/${timeOffId}`),
 
   // Payouts
   getPayouts: (ownerId: number) => axiosClient.get(`/payouts/owner/${ownerId}`),
@@ -187,6 +195,7 @@ export const adminAPI = {
   // Users Management
   getUsers: () => axiosClient.get("/users"), // Admin can see all users
   getUserDetail: (id: number) => axiosClient.get(`/users/${id}`),
+  createUser: (data: { name: string; email: string; password: string; role?: string }) => axiosClient.post("/users", data),
   updateUser: (id: number, data: any) => axiosClient.patch(`/users/${id}`, data),
   deleteUser: (id: number) => axiosClient.delete(`/users/${id}`),
 
@@ -197,8 +206,7 @@ export const adminAPI = {
 
   // Reports & Logs
   getReports: () => axiosClient.get("/admin/reports"),
-  getLogs: () => axiosClient.get("/admin/logs"),
-
+  
   // System Settings
   getSettings: () => axiosClient.get("/system-settings"),
   getSetting: (key: string) => axiosClient.get(`/system-settings/${key}`),
@@ -228,21 +236,9 @@ export const adminAPI = {
   updatePromotion: (id: number, data: any) => axiosClient.patch(`/admin/promotions/${id}`, data),
   deletePromotion: (id: number) => axiosClient.delete(`/admin/promotions/${id}`),
 
-  // CMS
-  getPages: () => axiosClient.get("/admin/cms/pages"),
-  getPageDetail: (id: number) => axiosClient.get(`/admin/cms/pages/${id}`),
-  updatePage: (id: number, data: any) => axiosClient.patch(`/admin/cms/pages/${id}`, data),
 
   // Dashboard Stats
   getMetrics: () => axiosClient.get("/admin/metrics"),
-
-  // Campaigns Management
-  getCampaigns: () => axiosClient.get("/campaigns"),
-  getCampaign: (id: number) => axiosClient.get(`/campaigns/${id}`),
-  createCampaign: (data: any) => axiosClient.post("/campaigns", data),
-  updateCampaign: (id: number, data: any) => axiosClient.patch(`/campaigns/${id}`, data),
-  deleteCampaign: (id: number) => axiosClient.delete(`/campaigns/${id}`),
-  updateCampaignStatus: (id: number, data: { isActive: boolean }) => axiosClient.patch(`/admin/campaigns/${id}/status`, data),
 
   // Notifications
   sendNotification: (data: { channel: string; userId?: number; message: string; meta?: any }) => 
@@ -276,7 +272,7 @@ export const usersAPI = {
   getFeedbacks: (userId: number) => axiosClient.get(`/users/${userId}/feedbacks`),
   getLoyaltyRank: (userId: number) => axiosClient.get(`/users/${userId}/loyalty/rank`),
   getLoyaltyHistory: () => axiosClient.get("/loyalty/history"),
-  update: (userId: number, data: { name?: string; phone?: string; address?: string }) => 
+  update: (userId: number, data: { name?: string; phone?: string; address?: string; bankName?: string; bankAccountNumber?: string; bankAccountHolder?: string }) => 
     axiosClient.patch(`/users/${userId}`, data),
   changePassword: (userId: number, data: { currentPassword: string; newPassword: string }) =>
     axiosClient.post(`/users/${userId}/change-password`, data),
@@ -288,6 +284,15 @@ export const usersAPI = {
     })
   },
   getAvatar: (userId: number) => axiosClient.get(`/media/user/${userId}/avatar`),
+  deleteAccount: () => axiosClient.delete("/users/me"),
+}
+
+// Auth API
+export const authAPI = {
+  login: (data: { email: string; password: string }) => axiosClient.post("/auth/login", data),
+  register: (data: { email: string; password: string; role?: string }) => axiosClient.post("/auth/register", data),
+  refresh: (data: { refreshToken: string }) => axiosClient.post("/auth/refresh", data),
+  forgotPassword: (data: { email: string }) => axiosClient.post("/auth/forgot-password", data),
 }
 
 // Coupons API

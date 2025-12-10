@@ -6,26 +6,16 @@ import { Role } from '../../common/enums/role.enum';
 import { CampaignsService } from './campaigns.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
-import { AdminService } from '../admin/admin.service';
 
 @ApiTags('campaigns')
 @ApiBearerAuth('Authorization')
 @Controller('campaigns')
 export class CampaignsController {
-  constructor(
-    private readonly campaignsService: CampaignsService,
-    private readonly adminService: AdminService,
-  ) {}
+  constructor(private readonly campaignsService: CampaignsService) {}
 
   @Post()
   @Auth(Role.ADMIN)
-  async create(@Body() dto: CreateCampaignDto, @Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'CREATE_CAMPAIGN', {
-        name: dto.name,
-      });
-    }
+  create(@Body() dto: CreateCampaignDto) {
     return this.campaignsService.create(dto);
   }
 
@@ -43,25 +33,19 @@ export class CampaignsController {
 
   @Patch(':id')
   @Auth(Role.ADMIN)
-  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCampaignDto, @Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'UPDATE_CAMPAIGN', {
-        campaignId: id,
-      });
-    }
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCampaignDto) {
     return this.campaignsService.update(id, dto);
   }
 
   @Delete(':id')
   @Auth(Role.ADMIN)
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'DELETE_CAMPAIGN', {
-        campaignId: id,
-      });
-    }
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.campaignsService.remove(id);
+  }
+
+  @Patch(':id/status')
+  @Auth(Role.ADMIN)
+  updateStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: { isActive: boolean }) {
+    return this.campaignsService.updateStatus(id, dto.isActive);
   }
 }

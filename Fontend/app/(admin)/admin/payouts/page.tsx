@@ -27,8 +27,8 @@ export default function AdminPayouts() {
     
     if (!amount || amount <= 0) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng nhập số tiền hợp lệ",
+        title: "Error",
+        description: "Please enter a valid amount",
         variant: "destructive",
       })
       return
@@ -49,22 +49,22 @@ export default function AdminPayouts() {
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
       REQUESTED: { 
-        label: "Đã yêu cầu", 
+        label: "Requested", 
         className: "bg-yellow-100 text-yellow-800",
         icon: <Clock className="h-4 w-4" />
       },
       APPROVED: { 
-        label: "Đã phê duyệt", 
+        label: "Approved", 
         className: "bg-blue-100 text-blue-800",
         icon: <CheckCircle className="h-4 w-4" />
       },
       COMPLETED: { 
-        label: "Đã hoàn thành", 
+        label: "Completed", 
         className: "bg-green-100 text-green-800",
         icon: <CheckCircle className="h-4 w-4" />
       },
       REJECTED: { 
-        label: "Đã từ chối", 
+        label: "Rejected", 
         className: "bg-red-100 text-red-800",
         icon: <XCircle className="h-4 w-4" />
       },
@@ -85,7 +85,7 @@ export default function AdminPayouts() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -95,16 +95,16 @@ export default function AdminPayouts() {
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Quản lý Thanh toán</h1>
-          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">Yêu cầu và xem lịch sử thanh toán</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Payout Management</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-600">Request and view payout history</p>
         </div>
         <Button
           className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
           onClick={() => setShowForm(!showForm)}
         >
           <Plus className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Yêu cầu thanh toán</span>
-          <span className="sm:hidden">Yêu cầu</span>
+          <span className="hidden sm:inline">Request Payout</span>
+          <span className="sm:hidden">Request</span>
         </Button>
       </div>
 
@@ -113,10 +113,10 @@ export default function AdminPayouts() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <DollarSign className="h-5 w-5" />
-            Số tiền hiện có (Available Profit)
+            Available Profit
           </CardTitle>
           <CardDescription className="text-green-700">
-            Tổng số tiền bạn có thể rút hiện tại
+            Total amount available for withdrawal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +124,7 @@ export default function AdminPayouts() {
             {new Intl.NumberFormat('vi-VN').format(availableProfit)} VND
           </div>
           <p className="text-sm text-green-600 mt-2">
-            Số tiền này sẽ tự động giảm khi bạn thực hiện payout
+            This amount will automatically decrease when you make a payout
           </p>
         </CardContent>
       </Card>
@@ -133,19 +133,19 @@ export default function AdminPayouts() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Yêu cầu Thanh toán</CardTitle>
-            <CardDescription>Điền thông tin để yêu cầu thanh toán</CardDescription>
+            <CardTitle>Request Payout</CardTitle>
+            <CardDescription>Fill in the information to request a payout</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Số tiền (VND) *</Label>
+                <Label htmlFor="amount">Amount (VND) *</Label>
                 <Input
                   id="amount"
                   type="number"
                   value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  placeholder="VD: 1000000"
+                  placeholder="E.g.: 1000000"
                   min="0"
                   step="1000"
                   max={availableProfit}
@@ -153,26 +153,26 @@ export default function AdminPayouts() {
                 />
                 <div className="space-y-1">
                   <p className="text-xs text-slate-500">
-                    Số tiền: {form.amount ? new Intl.NumberFormat('vi-VN').format(parseFloat(form.amount) || 0) : "0"} VND
+                    Amount: {form.amount ? new Intl.NumberFormat('vi-VN').format(parseFloat(form.amount) || 0) : "0"} VND
                   </p>
                   <p className="text-xs text-slate-500">
-                    Số tiền còn lại sau payout: {form.amount ? new Intl.NumberFormat('vi-VN').format(Math.max(0, availableProfit - parseFloat(form.amount) || 0)) : new Intl.NumberFormat('vi-VN').format(availableProfit)} VND
+                    Remaining after payout: {form.amount ? new Intl.NumberFormat('vi-VN').format(Math.max(0, availableProfit - parseFloat(form.amount) || 0)) : new Intl.NumberFormat('vi-VN').format(availableProfit)} VND
                   </p>
                   {form.amount && parseFloat(form.amount) > availableProfit && (
                     <p className="text-xs text-red-600 font-medium">
-                      ⚠️ Số tiền vượt quá số tiền hiện có!
+                      ⚠️ Amount exceeds available balance!
                     </p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
+                <Label htmlFor="notes">Notes (optional)</Label>
                 <Textarea
                   id="notes"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="VD: Thanh toán tháng 10/2025"
+                  placeholder="E.g.: October 2025 payout"
                   rows={3}
                 />
               </div>
@@ -182,10 +182,10 @@ export default function AdminPayouts() {
                   setShowForm(false)
                   setForm({ amount: "", notes: "" })
                 }}>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={submitting} className="bg-red-600 hover:bg-red-700">
-                  {submitting ? "Đang gửi..." : "Gửi yêu cầu"}
+                  {submitting ? "Submitting..." : "Submit Request"}
                 </Button>
               </div>
             </form>
@@ -199,9 +199,9 @@ export default function AdminPayouts() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              Lịch sử Thanh toán của tôi
+              My Payout History
             </CardTitle>
-            <CardDescription>{myPayouts.length} yêu cầu thanh toán</CardDescription>
+            <CardDescription>{myPayouts.length} payout requests</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -210,11 +210,11 @@ export default function AdminPayouts() {
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">ID</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Số tiền</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Trạng thái</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Ngày yêu cầu</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Ngày hoàn thành</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Ghi chú</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Amount</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Status</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Requested At</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Completed At</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Notes</th>
                     </tr>
                   </thead>
                 <tbody>
@@ -228,7 +228,7 @@ export default function AdminPayouts() {
                         {getStatusBadge(payout.status)}
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-slate-600 hidden md:table-cell whitespace-nowrap">
-                        {new Date(payout.requestedAt).toLocaleString("vi-VN", {
+                        {new Date(payout.requestedAt).toLocaleString("en-US", {
                           year: 'numeric',
                           month: '2-digit',
                           day: '2-digit',
@@ -237,7 +237,7 @@ export default function AdminPayouts() {
                         })}
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-slate-600 hidden lg:table-cell whitespace-nowrap">
-                        {payout.completedAt ? new Date(payout.completedAt).toLocaleString("vi-VN", {
+                        {payout.completedAt ? new Date(payout.completedAt).toLocaleString("en-US", {
                           year: 'numeric',
                           month: '2-digit',
                           day: '2-digit',
@@ -263,15 +263,15 @@ export default function AdminPayouts() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Tất cả Yêu cầu Thanh toán (Owners)
+            All Payout Requests (Owners)
           </CardTitle>
-          <CardDescription>{payouts.length} yêu cầu từ owners (tự động xử lý)</CardDescription>
+          <CardDescription>{payouts.length} requests from owners (auto-processed)</CardDescription>
         </CardHeader>
         <CardContent>
           {payouts.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <DollarSign className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-              <p>Chưa có yêu cầu thanh toán nào từ owners</p>
+              <p>No payout requests from owners yet</p>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -281,11 +281,11 @@ export default function AdminPayouts() {
                     <tr className="border-b border-slate-200">
                       <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">ID</th>
                       <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Owner</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Số tiền</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Trạng thái</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Ngày yêu cầu</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Ngày hoàn thành</th>
-                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Ghi chú</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Amount</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">Status</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden md:table-cell">Requested At</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Completed At</th>
+                      <th className="px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap hidden lg:table-cell">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -305,7 +305,7 @@ export default function AdminPayouts() {
                           {getStatusBadge(payout.status)}
                         </td>
                         <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-slate-600 hidden md:table-cell whitespace-nowrap">
-                          {new Date(payout.requestedAt).toLocaleString("vi-VN", {
+                          {new Date(payout.requestedAt).toLocaleString("en-US", {
                             year: 'numeric',
                             month: '2-digit',
                             day: '2-digit',
@@ -314,7 +314,7 @@ export default function AdminPayouts() {
                           })}
                         </td>
                         <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-slate-600 hidden lg:table-cell whitespace-nowrap">
-                          {payout.completedAt ? new Date(payout.completedAt).toLocaleString("vi-VN", {
+                          {payout.completedAt ? new Date(payout.completedAt).toLocaleString("en-US", {
                             year: 'numeric',
                             month: '2-digit',
                             day: '2-digit',

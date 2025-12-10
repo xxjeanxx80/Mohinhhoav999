@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Bell, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNotifications, BookingNotification } from "@/hooks/use-notifications"
+import { notificationsAPI } from "@/lib/api-service"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
@@ -11,7 +12,7 @@ import { cn } from "@/lib/utils"
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { notifications, loading, unreadCount } = useNotifications()
+  const { notifications, loading, unreadCount, markAsRead, refetch } = useNotifications()
   const router = useRouter()
   const { user } = useUser()
   
@@ -33,15 +34,33 @@ export function NotificationDropdown() {
     }
   }, [isOpen])
 
-  const handleNotificationClick = (notification: BookingNotification) => {
-    if (notification.bookingId) {
-      const bookingsPath = isOwner ? "/owner/bookings" : "/customer/bookings"
-      router.push(bookingsPath)
-      setIsOpen(false)
-    } else {
-      // For non-booking notifications (like report resolutions), just close the dropdown
-      // or navigate to notifications page
-      setIsOpen(false)
+  const handleNotificationClick = async (notification: BookingNotification) => {
+    try {
+      // Mark notification as read using client-side tracking
+      markAsRead(notification.id)
+      
+      if (notification.bookingId) {
+        const bookingsPath = isOwner ? "/owner/bookings" : "/customer/bookings"
+        router.push(bookingsPath)
+        setIsOpen(false)
+      } else {
+        // For non-booking notifications (like report resolutions), just close the dropdown
+        // or navigate to notifications page
+        setIsOpen(false)
+      }
+      
+      // Refetch notifications to update the UI (though unread count should update automatically)
+      refetch()
+    } catch (error) {
+      console.error("Failed to handle notification click:", error)
+      // Still navigate even if something fails
+      if (notification.bookingId) {
+        const bookingsPath = isOwner ? "/owner/bookings" : "/customer/bookings"
+        router.push(bookingsPath)
+        setIsOpen(false)
+      } else {
+        setIsOpen(false)
+      }
     }
   }
 

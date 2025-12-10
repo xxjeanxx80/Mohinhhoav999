@@ -28,7 +28,7 @@ export default function AdminBookings() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Đang tải...</p>
+          <p className="text-slate-600">Loading...</p>
         </div>
       </div>
     )
@@ -37,15 +37,15 @@ export default function AdminBookings() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Quản lý Booking</h1>
-        <p className="mt-2 text-slate-600">Theo dõi tất cả booking trong hệ thống</p>
+        <h1 className="text-3xl font-bold text-slate-900">Booking Management</h1>
+        <p className="mt-2 text-slate-600">Track all bookings in the system</p>
       </div>
 
       {/* Stats Overview */}
       <div className="grid gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Tổng Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Total Bookings</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-red-600">{bookings.length}</p>
@@ -53,7 +53,7 @@ export default function AdminBookings() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Đã hoàn thành</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Completed</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-600">
@@ -63,7 +63,7 @@ export default function AdminBookings() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Đã xác nhận</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Confirmed</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-blue-600">
@@ -73,7 +73,7 @@ export default function AdminBookings() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Đã hủy</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Cancelled</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-red-600">
@@ -86,25 +86,25 @@ export default function AdminBookings() {
       {/* Bookings List */}
       <Card>
         <CardHeader>
-          <CardTitle>Tất cả Bookings</CardTitle>
-          <CardDescription>{bookings.length} booking trong hệ thống</CardDescription>
+          <CardTitle>All Bookings</CardTitle>
+          <CardDescription>{bookings.length} bookings in the system</CardDescription>
         </CardHeader>
         <CardContent>
           {bookings.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">Chưa có booking nào</p>
+            <p className="text-center text-slate-500 py-8">No bookings yet</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Khách hàng</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Customer</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Spa</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Dịch vụ</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Nhân viên</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ngày hẹn</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Giá</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Trạng thái</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Service</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Staff</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Scheduled Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Price</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,17 +128,17 @@ export default function AdminBookings() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {booking.staff?.name || "Chưa chỉ định"}
+                        {booking.staff?.name || "Not assigned"}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-slate-400" />
                           <div>
                             <p className="text-slate-900">
-                              {new Date(booking.scheduledAt).toLocaleDateString("vi-VN")}
+                              {new Date(booking.scheduledAt).toLocaleDateString("en-US")}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {new Date(booking.scheduledAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                              {new Date(booking.scheduledAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                             </p>
                           </div>
                         </div>
@@ -149,7 +149,7 @@ export default function AdminBookings() {
                           <div>
                             <p className="font-medium text-slate-900">{new Intl.NumberFormat('vi-VN').format(Number(booking.finalPrice))} VND</p>
                             {booking.couponCode && (
-                              <p className="text-xs text-green-600">Mã: {booking.couponCode}</p>
+                              <p className="text-xs text-green-600">Code: {booking.couponCode}</p>
                             )}
                           </div>
                         </div>

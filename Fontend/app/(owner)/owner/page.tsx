@@ -1,14 +1,45 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useUser } from "@/hooks/use-user"
 import { useOwnerDashboard } from "@/hooks/use-owner-dashboard"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { Calendar, DollarSign, TrendingUp, Users, Briefcase, ArrowUp } from "lucide-react"
+import { Calendar, DollarSign, TrendingUp, Users, Briefcase, ArrowUp, AlertCircle, Clock } from "lucide-react"
+import { ownerAPI } from "@/lib/api-service"
 
 export default function OwnerDashboard() {
   const { user } = useUser()
   const stats = useOwnerDashboard()
+  const [hasSpa, setHasSpa] = useState(false)
+  const [spaApproved, setSpaApproved] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const checkSpaApproval = async () => {
+      try {
+        const res = await ownerAPI.getMySpas()
+        const spas = res.data?.data || res.data || []
+        const hasSpaData = Array.isArray(spas) && spas.length > 0
+        setHasSpa(hasSpaData)
+        
+        if (hasSpaData) {
+          const isApproved = spas.some((spa: any) => spa.isApproved === true)
+          setSpaApproved(isApproved)
+        } else {
+          setSpaApproved(null)
+        }
+      } catch (error) {
+        console.error("Failed to check spa approval:", error)
+        setHasSpa(false)
+        setSpaApproved(null)
+      }
+    }
+    checkSpaApproval()
+    
+    // Refresh spa approval status every 5 seconds to catch admin approval
+    const interval = setInterval(checkSpaApproval, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -17,7 +48,23 @@ export default function OwnerDashboard() {
         <p className="mt-2 text-slate-600">Manage your spa business and bookings</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Pending Approval Alert - Only show if has spa but not approved */}
+      {hasSpa && spaApproved === false && (
+        <div className="rounded-lg border-l-4 border-l-amber-500 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <Clock className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-900">Pending Admin Approval</h3>
+              <p className="mt-1 text-sm text-amber-800">
+                Your spa is pending admin approval. Please check back after the admin has reviewed your registration.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats Cards - Only show if spa is approved */}
+      {spaApproved && (
       <div className="grid gap-6 md:grid-cols-5">
         <Card className="border-0 shadow-sm hover:shadow-md transition">
           <CardHeader className="pb-3">
@@ -94,9 +141,11 @@ export default function OwnerDashboard() {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {/* Monthly Revenue Chart */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Monthly Revenue Chart - Only show if spa is approved */}
+      {spaApproved && (
+        <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -200,47 +249,50 @@ export default function OwnerDashboard() {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {/* Recent Bookings */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle>Recent Bookings</CardTitle>
-          <CardDescription>Latest bookings from all time (excluding cancelled)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {stats.upcomingToday.length > 0 ? (
-              stats.upcomingToday.map((appointment: any) => (
-                <div 
-                  key={appointment.id} 
-                  className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition border border-slate-200"
-                >
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{appointment.service?.name || `Service ${appointment.serviceId}`}</p>
-                    <p className="text-sm text-slate-600 mt-1">{appointment.customer?.name || appointment.customer?.email || `Customer ${appointment.customerId}`}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {new Date(appointment.scheduledAt).toLocaleDateString()} at {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
+      {/* Recent Bookings - Only show if spa is approved */}
+      {spaApproved && (
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle>Recent Bookings</CardTitle>
+            <CardDescription>Latest bookings from all time (excluding cancelled)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.upcomingToday.length > 0 ? (
+                stats.upcomingToday.map((appointment: any) => (
+                  <div 
+                    key={appointment.id} 
+                    className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition border border-slate-200"
+                  >
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900">{appointment.service?.name || `Service ${appointment.serviceId}`}</p>
+                      <p className="text-sm text-slate-600 mt-1">{appointment.customer?.name || appointment.customer?.email || `Customer ${appointment.customerId}`}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {new Date(appointment.scheduledAt).toLocaleDateString()} at {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          appointment.status === "CONFIRMED" || appointment.status === "COMPLETED"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {appointment.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        appointment.status === "CONFIRMED" || appointment.status === "COMPLETED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {appointment.status}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-slate-600 text-center py-8">No bookings yet</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                ))
+              ) : (
+                <p className="text-slate-600 text-center py-8">No bookings yet</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

@@ -6,8 +6,6 @@ import { AppService } from './app.service';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { CustomerModule } from './modules/customers/customer.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
@@ -55,12 +53,10 @@ import { EmailModule } from './modules/email/email.module';
     PaymentsModule,
     PayoutsModule,
     CouponsModule,
-    CampaignsModule,
     AdminModule,
     ReportsModule,
     NotificationsModule,
-    DashboardModule,
-    SystemSettingsModule,
+        SystemSettingsModule,
     PostsModule,
     MediaModule,
     EmailModule,

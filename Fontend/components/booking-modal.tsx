@@ -43,6 +43,7 @@ export function BookingModal({
     notes: "",
   })
   const [loading, setLoading] = useState(false)
+  const [filteringStaff, setFilteringStaff] = useState(false)
   const { toast } = useToast()
   const { user } = useUser()
 
@@ -62,6 +63,13 @@ export function BookingModal({
       }
     }
   }, [isOpen, user])
+
+  // Filter staff when moving to step 3 (after selecting time)
+  useEffect(() => {
+    if (step === 3 && selectedDate && selectedTime) {
+      filterAvailableStaff()
+    }
+  }, [step, selectedDate, selectedTime])
 
   const loadServices = async () => {
     try {
@@ -88,6 +96,28 @@ export function BookingModal({
     }
   }
 
+  const filterAvailableStaff = async () => {
+    try {
+      setFilteringStaff(true)
+      // Create ISO datetime from selected date and time
+      const dateTime = new Date(`${selectedDate}T${selectedTime}:00`)
+      const scheduledAt = dateTime.toISOString()
+      
+      const response = await bookingsAPI.getAvailableStaff(spaId, scheduledAt)
+      const availableStaffData = response.data?.data || []
+      setStaff(availableStaffData)
+    } catch (error) {
+      console.error("Failed to filter staff:", error)
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải danh sách nhân viên có sẵn",
+        variant: "destructive",
+      })
+    } finally {
+      setFilteringStaff(false)
+    }
+  }
+
   const validateCoupon = async () => {
     if (!couponCode.trim()) {
       setValidatedCoupon(null)
@@ -99,11 +129,23 @@ export function BookingModal({
       const response = await couponsAPI.validate(couponCode)
       const coupon = response.data?.data
       if (coupon && coupon.isActive) {
-        setValidatedCoupon(coupon)
-        toast({
-          title: "Thành công",
-          description: `Áp dụng mã giảm ${coupon.discountValue}% thành công!`,
-        })
+        // Check if coupon is valid for this spa
+        // Admin coupons (no spaId) are valid for all spas
+        // Spa-specific coupons must match the current spaId
+        if (coupon.spaId && coupon.spaId !== spaId) {
+          setValidatedCoupon(null)
+          toast({
+            title: "Lỗi",
+            description: "Mã giảm giá này chỉ áp dụng cho spa khác",
+            variant: "destructive",
+          })
+        } else {
+          setValidatedCoupon(coupon)
+          toast({
+            title: "Thành công",
+            description: `Áp dụng mã giảm ${coupon.discountValue}% thành công!`,
+          })
+        }
       } else {
         setValidatedCoupon(null)
         toast({
@@ -112,13 +154,28 @@ export function BookingModal({
           variant: "destructive",
         })
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Suppress 404 errors in console (expected when coupon doesn't exist)
+      if (error.response?.status !== 404) {
+        console.error("Validate coupon error:", error)
+      }
       setValidatedCoupon(null)
-      toast({
-        title: "Lỗi",
-        description: "Mã giảm giá không hợp lệ",
-        variant: "destructive",
-      })
+      
+      // Handle specific error cases
+      let errorMessage = "Mã giảm giá không khả dụng"
+      
+      if (error.response?.status === 404) {
+        errorMessage = "Mã giảm giá không tồn tại"
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.message || "Mã giảm giá không hợp lệ"
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      }
+      
+      console.log("Error message:", errorMessage)
+      
+      // Show alert to notify user
+      alert(errorMessage)
     } finally {
       setValidatingCoupon(false)
     }
@@ -144,7 +201,7 @@ export function BookingModal({
       })
       return
     }
-    if (step === 3 && !selectedDate) {
+    if (step === 2 && !selectedDate) {
       toast({
         title: "Thông báo",
         description: "Vui lòng chọn ngày",
@@ -152,7 +209,7 @@ export function BookingModal({
       })
       return
     }
-    if (step === 3 && !selectedTime) {
+    if (step === 2 && !selectedTime) {
       toast({
         title: "Thông báo",
         description: "Vui lòng chọn giờ",
@@ -200,12 +257,11 @@ export function BookingModal({
         payload.couponCode = validatedCoupon.code.trim()
       }
 
-      console.log('📤 Booking payload:', payload)
       await bookingsAPI.create(payload)
 
       toast({
-        title: "Thành công",
-        description: "Đặt lịch hẹn thành công!",
+        title: "Success",
+        description: "Booking confirmed successfully!",
       })
 
       // Reset form
@@ -302,8 +358,8 @@ export function BookingModal({
           </div>
           <div className="flex justify-between mt-2 text-sm">
             <span>Chọn dịch vụ</span>
-            <span>Chọn nhân viên</span>
             <span>Chọn thời gian</span>
+            <span>Chọn nhân viên</span>
             <span>Xác nhận</span>
           </div>
         </div>
@@ -361,10 +417,52 @@ export function BookingModal({
             </div>
           )}
 
-          {/* Step 2: Select Staff */}
+          {/* Step 2: Select Date & Time */}
           {step === 2 && (
             <div>
+              <h3 className="text-lg font-semibold mb-4">Chọn thời gian</h3>
+              <div className="mb-6">
+                <p className="text-sm font-semibold mb-3">Tháng 10</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {getDatesForMonth().map((date) => (
+                    <button
+                      key={date.toISOString()}
+                      onClick={() => setSelectedDate(date.toISOString().split("T")[0])}
+                      className={`px-3 py-2 rounded-lg whitespace-nowrap transition ${
+                        selectedDate === date.toISOString().split("T")[0]
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200"
+                      }`}
+                    >
+                      <div className="text-xs">{date.toLocaleDateString("vi-VN", { weekday: "short" })}</div>
+                      <div className="font-semibold">{date.getDate()}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-sm font-semibold mb-3">Giờ</p>
+              <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                {timeSlots.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => setSelectedTime(time)}
+                    className={`p-2 rounded-lg transition text-sm ${
+                      selectedTime === time ? "bg-red-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Select Staff */}
+          {step === 3 && (
+            <div>
               <h3 className="text-lg font-semibold mb-4">Chọn nhân viên</h3>
+              <p className="text-sm text-gray-600 mb-4">Thời gian: {selectedDate} - {selectedTime}</p>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 <div
                   onClick={() => setSelectedStaff(null)}
@@ -406,47 +504,6 @@ export function BookingModal({
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Select Date & Time */}
-          {step === 3 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Chọn thời gian</h3>
-              <div className="mb-6">
-                <p className="text-sm font-semibold mb-3">Tháng 10</p>
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {getDatesForMonth().map((date) => (
-                    <button
-                      key={date.toISOString()}
-                      onClick={() => setSelectedDate(date.toISOString().split("T")[0])}
-                      className={`px-3 py-2 rounded-lg whitespace-nowrap transition ${
-                        selectedDate === date.toISOString().split("T")[0]
-                          ? "bg-red-600 text-white"
-                          : "bg-gray-100 hover:bg-gray-200"
-                      }`}
-                    >
-                      <div className="text-xs">{date.toLocaleDateString("vi-VN", { weekday: "short" })}</div>
-                      <div className="font-semibold">{date.getDate()}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <p className="text-sm font-semibold mb-3">Giờ</p>
-              <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`p-2 rounded-lg transition text-sm ${
-                      selectedTime === time ? "bg-red-600 text-white" : "bg-gray-100 hover:bg-gray-200"
-                    }`}
-                  >
-                    {time}
-                  </button>
                 ))}
               </div>
             </div>

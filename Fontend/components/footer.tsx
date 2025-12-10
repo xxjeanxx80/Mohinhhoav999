@@ -14,13 +14,13 @@ export function Footer() {
               <Logo size="md" showLink={true} variant="default" />
             </div>
             <p className="text-base text-slate-700 mb-2 leading-relaxed">
-              Công ty Cổ phần Truyền Thông và Công Nghệ Bessi
+              Công ty 1 Mình tao
             </p>
             <p className="text-base text-slate-600 mb-2 leading-relaxed">
-              Giấy CNĐKDN: 0317782388 - Ngày cấp: 12/04/2023
+              Giấy phép đăng ký : 12345678
             </p>
             <p className="text-base text-slate-600 mb-4 leading-relaxed">
-              Cơ quan cấp: Sở Kế hoạch và Đầu tư Thành phố Hồ Chí Minh.
+              Cơ quan cấp: Không cấp
             </p>
           </div>
 
@@ -29,12 +29,8 @@ export function Footer() {
             <h3 className="font-bold text-slate-900 mb-4 text-lg">Địa chỉ</h3>
             <div className="space-y-3 text-base text-slate-700 leading-relaxed">
               <p>
-                <span className="font-semibold">Trụ sở tại Hồ Chí Minh:</span><br />
-                L17-11, tầng 17, tòa nhà Vincom center, 72 Lê Thánh Tôn, P. Bến Nghé, Q.1, TP. HCM
-              </p>
-              <p>
                 <span className="font-semibold">Trụ sở tại Hà Nội:</span><br />
-                Số 72A Ngõ 31 Hoàng Cầu, P. Ô Chợ Dừa, Q. Đống Đa, TP. Hà Nội
+                Số 1 Trịnh Văn Bô
               </p>
             </div>
           </div>
@@ -70,11 +66,6 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-slate-900 mb-4 text-lg">Đối với khách hàng</h3>
             <ul className="space-y-2 text-base text-slate-700">
-              <li>
-                <Link href="/customer/vouchers" className="hover:text-amber-500 transition">
-                  Voucher
-                </Link>
-              </li>
               <li>
                 <Link href="/payment-guide" className="hover:text-amber-500 transition">
                   Hướng dẫn thanh toán

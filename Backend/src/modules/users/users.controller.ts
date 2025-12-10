@@ -13,7 +13,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoyaltyRank } from './enums/loyalty-rank.enum';
 import { UsersService } from './users.service';
 import { MediaService } from '../media/media.service';
-import { AdminService } from '../admin/admin.service';
 
 @ApiBearerAuth('Authorization')
 @Controller('users')
@@ -21,19 +20,11 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly mediaService: MediaService,
-    private readonly adminService: AdminService,
   ) {}
 
   @Post()
   @Auth(Role.ADMIN)
-  async create(@Body() dto: CreateUserDto, @Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'CREATE_USER', {
-        email: dto.email,
-        role: dto.role || 'CUSTOMER',
-      });
-    }
+  create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
@@ -117,13 +108,7 @@ export class UsersController {
 
   @Delete(':id')
   @Auth(Role.ADMIN)
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    const admin = req.user as { id: number } | undefined;
-    if (admin) {
-      await this.adminService.recordAdminAction(admin.id, 'DELETE_USER', {
-        userId: id,
-      });
-    }
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
 
