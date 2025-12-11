@@ -29,7 +29,6 @@ export class PaymentsService {
       status: PaymentStatus.COMPLETED,
       commissionPercent: dto.commissionPercent,
       commissionAmount,
-      transactionReference: dto.transactionReference ?? null,
     });
 
     const saved = await this.paymentRepository.save(payment);

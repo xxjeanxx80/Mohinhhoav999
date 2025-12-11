@@ -22,9 +22,4 @@ export class CreatePaymentDto {
   @Min(0)
   @Max(100)
   commissionPercent: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  transactionReference?: string;
 }

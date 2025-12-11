@@ -303,14 +303,12 @@ export class BookingsService {
     } catch { /* use default */ }
 
     const paymentMethod = method || PaymentMethod.CASH;
-    const transactionReference = paymentMethod !== PaymentMethod.CASH ? `TXN-${bookingId}-${Date.now()}` : null;
 
     const payment = manager.create(Payment, {
       bookingId, amount, method: paymentMethod,
       status: PaymentStatus.COMPLETED,
       commissionPercent: commissionRate,
       commissionAmount,
-      transactionReference,
     });
     await manager.save(payment);
   }

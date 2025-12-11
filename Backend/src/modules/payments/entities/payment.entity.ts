@@ -49,9 +49,6 @@ export class Payment {
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
   status: PaymentStatus;
 
-  @Column({ name: 'transaction_reference', type: 'varchar', length: 255, nullable: true })
-  transactionReference?: string | null;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
